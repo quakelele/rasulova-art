@@ -1,0 +1,25 @@
+{
+  "id": "bowl-hydrangea",
+  "color": "Голубой и белый",
+  "kind": "Конфетница",
+  "legacyIds": [
+    "blue",
+    "petal"
+  ],
+  "sourceImages": [
+    "images/photo_2026-08-08_17-58-32.webp",
+    "images/photo_2026-08-11_01-33-40.webp",
+    "images/photo_2026-08-11_01-33-59.webp",
+    "images/photo_2026-08-09_17-28-10.webp",
+    "images/photo_2026-09-24_15-43-24.webp",
+    "images/photo_2026-08-20_14-46-17.webp",
+    "images/photo_2026-08-20_14-46-19.webp",
+    "images/photo_2026-08-20_14-46-21.webp",
+    "images/photo_2026-08-20_14-46-23.webp",
+    "images/photo_2026-08-22_13-49-41.webp",
+    "images/photo_2026-08-22_13-49-43.webp",
+    "images/photo_2026-08-22_13-49-45.webp",
+    "images/photo_2026-08-20_14-46-12.webp",
+    "images/photo_2026-09-24_15-43-18.webp"
+  ]
+}

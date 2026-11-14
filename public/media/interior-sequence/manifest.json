@@ -1,0 +1,13 @@
+{
+    "fps":  30,
+    "desktop":  {
+                    "height":  800,
+                    "width":  450
+                },
+    "source":  "Camera_moving_toward_ceramic_vase_f6cd792b.mp4",
+    "count":  298,
+    "mobile":  {
+                   "height":  512,
+                   "width":  288
+               }
+}

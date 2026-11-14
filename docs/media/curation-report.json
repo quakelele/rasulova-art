@@ -1,0 +1,76 @@
+{
+  "inputPhotos": 87,
+  "uniqueArtworkAndStudioPhotos": 73,
+  "works": 11,
+  "removed": [
+    {
+      "file": "Новая папка/photo_2026-08-02_11-25-58.jpg",
+      "reason": "Ingredient reference, not artwork"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-09_17-28-05.jpg",
+      "canonical": "Новая папка/photo_2026-08-02_11-25-38.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-09_17-28-08.jpg",
+      "canonical": "Новая папка/photo_2026-08-02_11-25-30.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_12-41-35.jpg",
+      "canonical": "Новая папка/photo_2026-08-09_17-28-12.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_12-41-41.jpg",
+      "canonical": "Новая папка/photo_2026-08-11_01-34-03.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_12-41-43.jpg",
+      "canonical": "Новая папка/photo_2026-08-08_17-58-23.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_12-41-45.jpg",
+      "canonical": "Новая папка/photo_2026-08-08_15-13-41.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_12-41-54.jpg",
+      "canonical": "Новая папка/photo_2026-08-08_17-58-23.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_12-44-47.jpg",
+      "canonical": "Новая папка/photo_2026-08-09_17-28-12.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_13-11-09.jpg",
+      "canonical": "Новая папка/photo_2026-08-09_17-28-03.jpg",
+      "reason": "Exact duplicate"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_13-11-29.jpg",
+      "canonical": "Новая папка/photo_2026-08-02_11-25-38.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_13-11-31.jpg",
+      "canonical": "Новая папка/photo_2026-08-02_11-25-30.jpg",
+      "reason": "Same photograph, different encoding"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_13-11-33.jpg",
+      "canonical": "Новая папка/photo_2026-08-09_17-28-10.jpg",
+      "reason": "Exact duplicate"
+    },
+    {
+      "file": "Новая папка/photo_2026-08-17_13-11-34.jpg",
+      "canonical": "Новая папка/photo_2026-08-09_17-28-12.jpg",
+      "reason": "Exact duplicate"
+    }
+  ]
+}

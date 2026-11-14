@@ -1,0 +1,14 @@
+{
+  "id": "vase-mix",
+  "color": "Красный и графитовый",
+  "kind": "Ваза",
+  "legacyIds": [
+    "raspberry"
+  ],
+  "sourceImages": [
+    "images/photo_2026-08-02_11-08-29.webp",
+    "images/photo_2026-08-02_11-08-30.webp",
+    "images/photo_2026-08-08_15-13-41.webp",
+    "images/photo_2026-08-28_22-56-42.webp"
+  ]
+}

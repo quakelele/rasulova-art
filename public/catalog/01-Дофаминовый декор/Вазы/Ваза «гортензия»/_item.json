@@ -1,0 +1,17 @@
+{
+  "id": "vase-hydrangea",
+  "color": "Голубой и белый",
+  "kind": "Ваза",
+  "legacyIds": [
+    "hydrangea"
+  ],
+  "sourceImages": [
+    "images/photo_2026-08-02_11-27-18.webp",
+    "images/photo_2026-08-02_11-27-13.webp",
+    "images/photo_2026-08-02_11-27-20.webp",
+    "images/photo_2026-08-08_17-58-23.webp",
+    "images/photo_2026-08-02_11-25-34.webp",
+    "images/photo_2026-08-02_11-25-38.webp",
+    "images/photo_2026-08-11_01-34-13.webp"
+  ]
+}

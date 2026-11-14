@@ -1,0 +1,14 @@
+{
+  "id": "bowl-lemons",
+  "color": "Жёлтый",
+  "kind": "Конфетница",
+  "legacyIds": [
+    "lemon"
+  ],
+  "sourceImages": [
+    "images/photo_2026-09-11_19-17-09.webp",
+    "images/photo_2026-09-24_15-43-20.webp",
+    "images/photo_2026-09-11_19-17-01.webp",
+    "images/photo_2026-09-11_19-17-11.webp"
+  ]
+}

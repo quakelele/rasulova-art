@@ -1,0 +1,142 @@
+﻿[
+    {
+        "value":  [
+                      "src/main.jsx",
+                      "src/app/App.jsx"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/ScrollFilm.jsx",
+                      "src/sections/ScrollFilm.jsx"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/SelectionInquiry.jsx",
+                      "src/sections/SelectionInquiry.jsx"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/ArtViewer.jsx",
+                      "src/components/gallery/ArtViewer.jsx"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/SmoothCarousel.jsx",
+                      "src/components/gallery/SmoothCarousel.jsx"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/contact.js",
+                      "src/lib/contact.js"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/curated-media.js",
+                      "src/data/catalog.js"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/media-data.js",
+                      "src/data/raw-import.js"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/style.css",
+                      "src/styles/base.css"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/film.css",
+                      "src/styles/hero.css"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/gallery.css",
+                      "src/styles/gallery.css"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "src/premium.css",
+                      "src/styles/selection.css"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "scrollcraft/lab",
+                      "artifacts/qa"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "scrollcraft/builds",
+                      "docs/iterations"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "scrollcraft/FINGERPRINTS.md",
+                      "docs/iterations/FINGERPRINTS.md"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "public/media/optimized",
+                      "public/media/images"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "public/media/frames",
+                      "public/media/sequence"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "public/media/Новая папка",
+                      "assets/originals/collection"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "public/media/Camera_moving_backward_from_vase_bd1f6868_iris3.mp4",
+                      "assets/originals/video/Camera_moving_backward_from_vase_bd1f6868_iris3.mp4"
+                  ],
+        "Count":  2
+    },
+    {
+        "value":  [
+                      "public/media/film-poster-reverse.webp",
+                      "public/media/posters/hero.webp"
+                  ],
+        "Count":  2
+    }
+]

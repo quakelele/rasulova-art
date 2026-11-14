@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {allPhotos} from '../../src/data/photo-archive.js';
+const run=promisify(execFile),ffmpeg=process.env.SCROLLCRAFT_FFMPEG;
+if(!ffmpeg)throw Error('Set SCROLLCRAFT_FFMPEG to a full FFmpeg executable.');
+const target='public/media/images';fs.mkdirSync(target,{recursive:true});
+const used=new Set(allPhotos.map(photo=>photo.image));
+const sources=['assets/originals/collection','assets/originals/studio'].flatMap(dir=>fs.readdirSync(dir).filter(name=>/\.(png|jpe?g)$/i.test(name)&&used.has('images/'+name.replace(/\.[^.]+$/,'.webp'))).map(name=>({name,source:path.join(dir,name)})));
+let next=0;await Promise.all(Array.from({length:4},async()=>{while(next<sources.length){const item=sources[next++];await run(ffmpeg,['-y','-hide_banner','-loglevel','error','-i',item.source,'-vf',"scale='min(1600,iw)':-2:flags=lanczos",'-frames:v','1','-c:v','libwebp','-quality','83',path.join(target,item.name.replace(/\.[^.]+$/,'.webp'))])}}));
+console.log(`Optimized ${sources.length} original images. The curated catalog controls which copies are displayed.`);

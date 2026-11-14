@@ -1,0 +1,15 @@
+{
+  "id": "vase-lemons",
+  "color": "Жёлтый",
+  "kind": "Ваза",
+  "legacyIds": [
+    "citrus"
+  ],
+  "sourceImages": [
+    "images/photo_2026-08-02_11-25-49.webp",
+    "images/photo_2026-08-02_11-25-23.webp",
+    "images/photo_2026-08-02_11-25-52.webp",
+    "images/photo_2026-08-02_11-25-55.webp",
+    "images/photo_2026-08-02_11-26-01.webp"
+  ]
+}

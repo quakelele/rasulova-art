@@ -1,0 +1,25 @@
+{
+  "id": "vase-blueberry",
+  "color": "Синий и графитовый",
+  "kind": "Ваза",
+  "legacyIds": [
+    "berry",
+    "blueberry"
+  ],
+  "sourceImages": [
+    "images/photo_2026-08-02_11-25-15.webp",
+    "images/photo_2026-08-02_11-25-08.webp",
+    "images/photo_2026-08-02_11-25-19.webp",
+    "images/photo_2026-08-02_11-26-08.webp",
+    "images/photo_2026-08-02_11-26-11.webp",
+    "images/photo_2026-08-11_01-34-03.webp",
+    "images/photo_2026-08-02_11-25-41.webp",
+    "images/photo_2026-08-11_01-34-05.webp",
+    "images/photo_2026-08-20_14-46-08.webp",
+    "images/photo_2026-08-28_22-56-15.webp",
+    "images/photo_2026-08-28_22-56-38.webp",
+    "images/photo_2026-08-30_14-34-37.webp",
+    "images/photo_2026-09-24_15-42-32.webp",
+    "images/photo_2026-09-24_15-42-57.webp"
+  ]
+}

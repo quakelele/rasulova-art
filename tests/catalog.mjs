@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {readCatalog} from '../scripts/catalog/read-catalog.mjs';
+const root=path.resolve('artifacts/qa/catalog-fixture-'+Date.now());
+function put(relative,content='image'){const file=path.join(root,relative);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,content)}
+put('01-Интерьерные картины/Тихое утро__01.jpg','one');
+put('01-Интерьерные картины/Тихое утро__02.jpg','two');
+put('01-Интерьерные картины/Морской свет/01.jpg','three');
+put('01-Интерьерные картины/Морской свет/02.jpg','three');
+put('02-Артбокс/README.txt','empty');
+put('03-Новый раздел/Солнце.webp','four');
+let c=readCatalog(root);
+assert.equal(c.categories.length,3);assert.equal(c.works.length,3);
+assert.equal(c.works.find(w=>w.name==='Тихое утро').images.length,2);
+assert.equal(c.works.find(w=>w.name==='Морской свет').images.length,1);
+assert.equal(c.categories[1].works.length,0);
+assert.equal(c.works.find(w=>w.name==='Тихое утро').kind,'Интерьерная картина');
+assert.equal(c.categories[2].name,'Новый раздел');
+const live=readCatalog();assert.equal(live.works.length,10);assert.deepEqual(live.categories.map(c=>c.works.length),[10,0,0]);
+console.log('Catalog: filenames, multiple views, duplicate suppression, empty and new sections passed.');

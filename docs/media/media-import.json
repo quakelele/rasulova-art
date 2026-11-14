@@ -1,0 +1,281 @@
+{
+  "sourceFiles": 68,
+  "uniqueFiles": 61,
+  "duplicates": 7,
+  "optimizedFiles": 61,
+  "referencedUniqueFiles": 61,
+  "mapping": [
+    {
+      "file": "photo_2026-08-02_11-08-29.png",
+      "asset": "optimized/photo_2026-08-02_11-08-29.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-08-30.png",
+      "asset": "optimized/photo_2026-08-02_11-08-30.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-08.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-08.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-15.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-15.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-19.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-19.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-23.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-23.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-30.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-30.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-34.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-34.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-38.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-38.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-41.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-41.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-44.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-44.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-49.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-49.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-52.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-52.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-55.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-55.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-25-58.jpg",
+      "asset": "optimized/photo_2026-08-02_11-25-58.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-26-01.jpg",
+      "asset": "optimized/photo_2026-08-02_11-26-01.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-26-03.jpg",
+      "asset": "optimized/photo_2026-08-02_11-26-03.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-26-06.jpg",
+      "asset": "optimized/photo_2026-08-02_11-26-06.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-26-08.jpg",
+      "asset": "optimized/photo_2026-08-02_11-26-08.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-26-11.jpg",
+      "asset": "optimized/photo_2026-08-02_11-26-11.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-26-13.jpg",
+      "asset": "optimized/photo_2026-08-02_11-26-13.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-27-13.jpg",
+      "asset": "optimized/photo_2026-08-02_11-27-13.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-27-18.jpg",
+      "asset": "optimized/photo_2026-08-02_11-27-18.webp"
+    },
+    {
+      "file": "photo_2026-08-02_11-27-20.jpg",
+      "asset": "optimized/photo_2026-08-02_11-27-20.webp"
+    },
+    {
+      "file": "photo_2026-08-08_15-13-41.jpg",
+      "asset": "optimized/photo_2026-08-08_15-13-41.webp"
+    },
+    {
+      "file": "photo_2026-08-08_17-58-23.jpg",
+      "asset": "optimized/photo_2026-08-08_17-58-23.webp"
+    },
+    {
+      "file": "photo_2026-08-08_17-58-32.jpg",
+      "asset": "optimized/photo_2026-08-08_17-58-32.webp"
+    },
+    {
+      "file": "photo_2026-08-09_17-28-03.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-03.webp"
+    },
+    {
+      "file": "photo_2026-08-09_17-28-05.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-05.webp"
+    },
+    {
+      "file": "photo_2026-08-09_17-28-08.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-08.webp"
+    },
+    {
+      "file": "photo_2026-08-09_17-28-10.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-10.webp"
+    },
+    {
+      "file": "photo_2026-08-09_17-28-12.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-12.webp"
+    },
+    {
+      "file": "photo_2026-08-11_01-33-40.jpg",
+      "asset": "optimized/photo_2026-08-11_01-33-40.webp"
+    },
+    {
+      "file": "photo_2026-08-11_01-33-59.jpg",
+      "asset": "optimized/photo_2026-08-11_01-33-59.webp"
+    },
+    {
+      "file": "photo_2026-08-11_01-34-03.jpg",
+      "asset": "optimized/photo_2026-08-11_01-34-03.webp"
+    },
+    {
+      "file": "photo_2026-08-11_01-34-05.jpg",
+      "asset": "optimized/photo_2026-08-11_01-34-05.webp"
+    },
+    {
+      "file": "photo_2026-08-11_01-34-07.jpg",
+      "asset": "optimized/photo_2026-08-11_01-34-07.webp"
+    },
+    {
+      "file": "photo_2026-08-11_01-34-13.jpg",
+      "asset": "optimized/photo_2026-08-11_01-34-13.webp"
+    },
+    {
+      "file": "photo_2026-08-11_01-34-17.jpg",
+      "asset": "optimized/photo_2026-08-11_01-34-17.webp"
+    },
+    {
+      "file": "photo_2026-08-14_14-04-03.jpg",
+      "asset": "optimized/photo_2026-08-14_14-04-03.webp"
+    },
+    {
+      "file": "photo_2026-08-14_14-04-26.jpg",
+      "asset": "optimized/photo_2026-08-14_14-04-26.webp"
+    },
+    {
+      "file": "photo_2026-08-14_14-04-28.jpg",
+      "asset": "optimized/photo_2026-08-14_14-04-28.webp"
+    },
+    {
+      "file": "photo_2026-08-17_12-41-35.jpg",
+      "asset": "optimized/photo_2026-08-17_12-41-35.webp"
+    },
+    {
+      "file": "photo_2026-08-17_12-41-41.jpg",
+      "asset": "optimized/photo_2026-08-17_12-41-41.webp"
+    },
+    {
+      "file": "photo_2026-08-17_12-41-43.jpg",
+      "asset": "optimized/photo_2026-08-17_12-41-43.webp"
+    },
+    {
+      "file": "photo_2026-08-17_12-41-45.jpg",
+      "asset": "optimized/photo_2026-08-17_12-41-45.webp"
+    },
+    {
+      "file": "photo_2026-08-17_12-41-54.jpg",
+      "asset": "optimized/photo_2026-08-17_12-41-43.webp"
+    },
+    {
+      "file": "photo_2026-08-17_12-44-47.jpg",
+      "asset": "optimized/photo_2026-08-17_12-41-35.webp"
+    },
+    {
+      "file": "photo_2026-08-17_13-11-09.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-03.webp"
+    },
+    {
+      "file": "photo_2026-08-17_13-11-29.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-05.webp"
+    },
+    {
+      "file": "photo_2026-08-17_13-11-31.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-08.webp"
+    },
+    {
+      "file": "photo_2026-08-17_13-11-33.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-10.webp"
+    },
+    {
+      "file": "photo_2026-08-17_13-11-34.jpg",
+      "asset": "optimized/photo_2026-08-09_17-28-12.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-08.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-08.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-12.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-12.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-17.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-17.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-19.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-19.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-21.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-21.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-23.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-23.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-26.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-26.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-30.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-30.webp"
+    },
+    {
+      "file": "photo_2026-08-20_14-46-32.jpg",
+      "asset": "optimized/photo_2026-08-20_14-46-32.webp"
+    },
+    {
+      "file": "photo_2026-08-22_13-49-29.jpg",
+      "asset": "optimized/photo_2026-08-22_13-49-29.webp"
+    },
+    {
+      "file": "photo_2026-08-22_13-49-36.jpg",
+      "asset": "optimized/photo_2026-08-22_13-49-36.webp"
+    },
+    {
+      "file": "photo_2026-08-22_13-49-38.jpg",
+      "asset": "optimized/photo_2026-08-22_13-49-38.webp"
+    },
+    {
+      "file": "photo_2026-08-22_13-49-41.jpg",
+      "asset": "optimized/photo_2026-08-22_13-49-41.webp"
+    },
+    {
+      "file": "photo_2026-08-22_13-49-43.jpg",
+      "asset": "optimized/photo_2026-08-22_13-49-43.webp"
+    },
+    {
+      "file": "photo_2026-08-22_13-49-45.jpg",
+      "asset": "optimized/photo_2026-08-22_13-49-45.webp"
+    }
+  ]
+}

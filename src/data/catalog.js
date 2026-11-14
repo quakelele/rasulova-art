@@ -1,0 +1,10 @@
+import catalog from 'virtual:folder-catalog';
+import {allPhotos as archive} from './photo-archive.js';
+export const categories=catalog.categories;
+export const works=catalog.works;
+export const idAliases=catalog.aliases;
+export const resolveWorkId=id=>works.some(work=>work.id===id)?id:idAliases[id]||null;
+const legacyByImage=new Map(archive.map(photo=>[photo.image,photo]));
+const usedSources=new Set();
+const folderPhotos=works.flatMap(work=>work.images.map((image,index)=>{const originalImage=work.sourcePairs.find(pair=>pair.image===image)?.source;const prior=legacyByImage.get(originalImage);if(originalImage)usedSources.add(originalImage);return{id:prior?.id||`${work.id}-photo-${index}`,isPhoto:true,image,originalImage,name:work.name,kind:work.kind,color:work.color,workId:work.id}}));
+export const allPhotos=[...folderPhotos,...archive.filter(photo=>!usedSources.has(photo.image)).map(photo=>({...photo,name:'В мастерской',kind:'Фотоистория',color:'RASULOVA ART',workId:null}))];

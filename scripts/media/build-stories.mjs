@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {motionStories} from '../../src/data/motion-stories.js';
+const run=promisify(execFile),ffmpeg=process.argv[2]||process.env.SCROLLCRAFT_FFMPEG;
+if(!ffmpeg)throw Error('Pass the full FFmpeg path as the first argument.');
+const clips=Object.values(motionStories).flatMap(story=>story.clips);let next=0;
+await Promise.all(Array.from({length:2},async()=>{while(next<clips.length){
+ const clip=clips[next++],source=path.resolve('assets/originals/video',clip.source+'.mp4'),download=path.join(os.homedir(),'Downloads',clip.source+'.mp4'),target=path.resolve('public/media/stories',clip.id);
+ fs.mkdirSync(path.dirname(source),{recursive:true});if(fs.existsSync(download))fs.copyFileSync(download,source);if(!fs.existsSync(source))throw Error('Missing original: '+source);
+ for(const variant of ['desktop','mobile'])fs.mkdirSync(path.join(target,variant),{recursive:true});
+ await run(ffmpeg,['-y','-hide_banner','-loglevel','error','-i',source,'-vf','scale=450:800:flags=lanczos,minterpolate=fps=30:mi_mode=mci:mc_mode=aobmc:me_mode=bidir','-an','-c:v','libwebp','-quality','62','-compression_level','4','-start_number','0',path.join(target,'desktop/frame-%03d.webp')]);
+ await run(ffmpeg,['-y','-hide_banner','-loglevel','error','-framerate','30','-i',path.join(target,'desktop/frame-%03d.webp'),'-vf','scale=288:512:flags=lanczos','-c:v','libwebp','-quality','60','-compression_level','4','-start_number','0',path.join(target,'mobile/frame-%03d.webp')]);
+ const frames=fs.readdirSync(path.join(target,'desktop')).filter(file=>/^frame-\d+\.webp$/.test(file));
+ fs.copyFileSync(path.join(target,'desktop/frame-000.webp'),path.join(target,'poster.webp'));
+ fs.writeFileSync(path.join(target,'manifest.json'),JSON.stringify({count:frames.length,fps:30,source:path.basename(source),desktop:{width:450,height:800},mobile:{width:288,height:512}},null,2));
+ console.log(clip.id+': '+frames.length+' frames');
+}}));

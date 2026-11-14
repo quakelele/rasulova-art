@@ -1,0 +1,10 @@
+﻿import React from 'react';
+import {createRoot} from 'react-dom/client';
+import App from './app/App';
+import {LocaleProvider} from './i18n/LocaleProvider';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'aos/dist/aos.css';
+import './styles/index.css';
+createRoot(document.getElementById('root')).render(<LocaleProvider><App/></LocaleProvider>);
