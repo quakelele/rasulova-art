@@ -1,3 +1,4 @@
+import {joinerMessages} from './joiner-messages.js';
 import {catalogMessages} from './catalog-messages.js';
 export const messages={
  ru:{
@@ -52,3 +53,5 @@ for(const locale of Object.keys(catalogMessages))Object.assign(messages[locale],
 Object.assign(kindKeys,{'Конфетница':'kindCandy','Интерьерная картина':'kindPainting','Артбокс':'kindArtbox','Авторская работа':'kindWork'});
 Object.assign(colorKeys,{'Голубой и белый':'colorBlueWhite','Красный и золотой':'colorRedGold','Синий и графитовый':'colorBlueGraphite','Сиреневый':'colorLilac','Коричневый':'colorBrown'});
 
+
+for(const locale of Object.keys(joinerMessages))Object.assign(messages[locale],joinerMessages[locale]);

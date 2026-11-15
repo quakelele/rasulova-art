@@ -3,6 +3,7 @@ import {ArrowUpRight,Plus,X,Menu,Instagram,MessageCircle} from 'lucide-react';
 import ScrollFilm from '../sections/ScrollFilm';
 import Collection from '../sections/Collection';
 import Atelier from '../sections/Atelier';
+import StatementJoiner from '../sections/StatementJoiner';
 import InteriorFilm from '../sections/InteriorFilm';
 import MotionStory from '../sections/MotionStory';
 import {experiments} from '../data/experiments';
@@ -40,7 +41,7 @@ export default function App(){
   <a className="skip" href="#collection">{t('skip')}</a>
   <header className="header"><a className="brand" href="#top" aria-label={t('logoHome')}>rasulova<span>ART STUDIO</span></a><nav aria-label={t('navLabel')} className={menu?'navigation open':'navigation'}>{[['collection','navObjects'],['atelier','navAtelier'],['inquiry','navSelection'],['contacts','navContacts']].map(([id,key])=><a key={id} href={'#'+id} onClick={()=>setMenu(false)}>{t(key)}{id==='inquiry'&&<span className="count">{saved.length}</span>}</a>)}</nav><div className="header-right"><LanguageSwitcher/><a className="header-link" href="#contacts">{t('contactAuthor')} <ArrowUpRight size={16}/></a><button className="menu-toggle" aria-label={menu?t('menuClose'):t('menuOpen')} aria-expanded={menu} onClick={()=>setMenu(!menu)}>{menu?<X/>:<Menu/>}</button></div></header>
   <main ref={root} id="top"><ScrollFilm/>
-   <section className="statement" data-sc-act="flow"><span className="small-note" data-aos="fade-right">{t('statementTag')}</span><p data-aos="fade-up">{t('statementTitle1')}<br/><em>{t('statementTitle2')}</em></p><div className="statement-bottom"><p data-aos="fade-left">{t('statementBody')}</p></div></section>
+   <StatementJoiner/>
    {showStories&&<MotionStory story="color"/>}
    <Collection saved={saved} active={active} onOpen={openEntry} onToggle={toggle}/>
    {showStories&&<MotionStory story="ritual"/>}
