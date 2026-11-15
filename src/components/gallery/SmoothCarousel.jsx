@@ -13,7 +13,7 @@ export default function SmoothCarousel({children,className='',...props}){
  const {t}=useLocale();
  const instance=useRef(null);
  useEffect(()=>{const keyboard=instance.current?.keyboard;if(!keyboard)return;if(props.keyboard?.enabled===false)keyboard.disable();else keyboard.enable()},[props.keyboard?.enabled]);
- return <Swiper {...props} a11y={{prevSlideMessage:t('prev'),nextSlideMessage:t('next'),slideLabelMessage:t('slideLabel'),...props.a11y}} className={`smooth-carousel ${className}`} modules={modules}
+ return <Swiper {...props} a11y={{prevSlideMessage:t('prev'),nextSlideMessage:t('next'),slideLabelMessage:t('slideLabel'),...props.a11y,scrollOnFocus:false}} className={`smooth-carousel ${className}`} modules={modules}
   speed={reduced?0:560} followFinger touchRatio={1} threshold={4} touchAngle={45}
   resistanceRatio={.6} touchStartPreventDefault={false} focusableElements={focusableFields}
   preventClicks preventClicksPropagation grabCursor simulateTouch

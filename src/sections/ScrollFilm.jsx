@@ -1,4 +1,5 @@
-﻿import React,{useEffect,useRef} from 'react';
+import {decodeFrame} from '../lib/decode-frame';
+import React,{useEffect,useRef} from 'react';
 import {useReducedMotion,useSpring} from 'framer-motion';
 import {ArrowUpRight} from 'lucide-react';
 import {useLocale} from '../i18n/LocaleProvider';
@@ -25,7 +26,7 @@ export default function ScrollFilm(){
   async function decode(i){
    if(dead||!blobs.has(i)||decoded.has(i)||decoding.has(i)||decoding.size>=4)return;
    decoding.add(i);
-   try{let bitmap;if('createImageBitmap' in window)bitmap=await createImageBitmap(blobs.get(i));else{bitmap=await new Promise((resolve,reject)=>{const image=new Image(),url=URL.createObjectURL(blobs.get(i));image.onload=()=>{URL.revokeObjectURL(url);resolve(image)};image.onerror=()=>{URL.revokeObjectURL(url);reject()};image.src=url})}
+   try{const bitmap=await decodeFrame(blobs.get(i));
     if(dead){bitmap.close?.();return}decoded.set(i,bitmap);evict();schedule();
    }catch{/* Retain the last complete frame if a single image cannot decode. */}finally{decoding.delete(i);if(!dead&&Math.abs(i-(1-clamp(progress.get()))*(count-1))<8)schedule()}
   }
@@ -42,7 +43,7 @@ export default function ScrollFilm(){
    if(nearest===undefined)return;const bitmap=decoded.get(nearest);if(!bitmap)return;
    ctx.globalAlpha=1;ctx.fillStyle='#12140f';ctx.fillRect(0,0,el.width,el.height);draw(bitmap,1);
    const blend=nearest===i&&decoded.has(next)?f-i:0;if(blend>.001)draw(decoded.get(next),blend);ctx.globalAlpha=1;
-   host.classList.add('has-sequence');host.dataset.frame=String(nearest);host.dataset.decodedFrames=String(decoded.size);host.dataset.targetFrame=f.toFixed(2);host.dataset.scVerifyState=`${nearest}:${blend.toFixed(2)}:${intro.toFixed(2)}:${beats.map(n=>n.toFixed(2)).join(":")}`;host.dataset.sequenceComplete=String(nearest===0&&p>.999);host.dataset.scVerifyHold=String(nearest===0&&p>.999);
+   if(!host.classList.contains('has-sequence')){host.classList.add('has-sequence');window.dispatchEvent(new Event('hero-ready'))}host.dataset.frame=String(nearest);host.dataset.decodedFrames=String(decoded.size);host.dataset.targetFrame=f.toFixed(2);host.dataset.scVerifyState=`${nearest}:${blend.toFixed(2)}:${intro.toFixed(2)}:${beats.map(n=>n.toFixed(2)).join(":")}`;host.dataset.sequenceComplete=String(nearest===0&&p>.999);host.dataset.scVerifyHold=String(nearest===0&&p>.999);
    if(nearest===0&&p>.999)exit.complete();
    if(previous!==i){previous=i;for(let d=1;d<5;d++){decode(i+d);decode(i-d)}}
   }
@@ -52,7 +53,7 @@ export default function ScrollFilm(){
   const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){update();schedule()}},{rootMargin:'150px'});observer.observe(host);
   const onVisibility=()=>{if(!document.hidden){update();schedule()}};
   addEventListener('scroll',update,{passive:true});addEventListener('resize',resize);document.addEventListener('visibilitychange',onVisibility);
-  fetch('/media/sequence/manifest.json',{signal:abort.signal}).then(r=>r.json()).then(manifest=>{if(dead)return;count=manifest.count;queue=Array.from({length:count},(_,i)=>count-1-i);resize();progress.jump(clamp((scrollY-top)/travel));pump()}).catch(()=>{});
+  fetch('/media/sequence/manifest.json',{signal:abort.signal}).then(r=>r.json()).then(manifest=>{if(dead)return;count=manifest.count;queue=[];resize();progress.jump(clamp((scrollY-top)/travel));prioritize(Math.floor((1-clamp(progress.get()))*(count-1)))}).catch(()=>{});
   resize();
   return()=>{dead=true;exit.destroy();abort.abort();unsubscribe();observer.disconnect();removeEventListener('scroll',update);removeEventListener('resize',resize);document.removeEventListener('visibilitychange',onVisibility);cancelAnimationFrame(raf);decoded.forEach(bitmap=>bitmap.close?.());decoded.clear();blobs.clear()};
  },[reduced,progress]);

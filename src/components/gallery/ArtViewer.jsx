@@ -26,7 +26,7 @@ export default function ArtViewer({work,selected,onToggle,onClosed}){
  async function close(){
   if(closing.current)return;closing.current=true;setIsClosing(true);
   await controls.start({opacity:0,y:reduced?0:12,scale:reduced?1:.985,transition:{duration:reduced?0:.24,ease:[.4,0,.6,1]}});
-  dialog.current?.close();onClosed();if(lastFocus.current?.isConnected)lastFocus.current.focus();
+  dialog.current?.close();onClosed();if(lastFocus.current?.isConnected)lastFocus.current.focus({preventScroll:true});
  }
  return <dialog ref={dialog} className={`premium-viewer${isClosing?' is-closing':''}`} aria-label={work?`${t('view')}: ${name}`:t('view')} onCancel={e=>{e.preventDefault();close()}} onClick={e=>{if(e.target===dialog.current)close()}}>
   {work&&<motion.div className="viewer-shell" animate={controls} initial={{opacity:0}}>

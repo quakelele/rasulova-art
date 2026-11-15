@@ -1,3 +1,4 @@
+import {decodeFrame} from '../lib/decode-frame';
 import {useEffect} from 'react';
 import {useReducedMotion,useSpring} from 'framer-motion';
 const clamp=n=>Math.max(0,Math.min(1,n));
@@ -19,9 +20,7 @@ export default function useFrameSequence(section,canvas,basePath='/media/interio
    if(dead||!blobs.has(i)||decoded.has(i)||decoding.has(i)||decoding.size>=3)return;
    decoding.add(i);
    try{
-    let bitmap;
-    if('createImageBitmap' in window)bitmap=await createImageBitmap(blobs.get(i));
-    else bitmap=await new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(blobs.get(i));img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=()=>{URL.revokeObjectURL(url);reject(Error('Frame decode failed'))};img.src=url});
+    const bitmap=await decodeFrame(blobs.get(i));
     if(dead||(!near&&mode==='flow')){bitmap.close?.();return}decoded.set(i,bitmap);evict();schedule();
    }catch{/* The poster or last complete frame remains visible. */}finally{decoding.delete(i)}
   }
@@ -42,8 +41,8 @@ export default function useFrameSequence(section,canvas,basePath='/media/interio
   function currentProgress(){return clamp(mode==='flow'?(scrollY+innerHeight-top)/(host.offsetHeight+innerHeight):(scrollY-top)/travel)}
   function update(){progress.set(currentProgress());schedule()}
   function resize(){const box=el.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,mobile?1.5:1.25);el.width=Math.max(1,Math.round(box.width*dpr));el.height=Math.max(1,Math.round(box.height*dpr));top=host.getBoundingClientRect().top+scrollY;travel=Math.max(1,(host.offsetHeight-innerHeight)*.88);update();schedule()}
-  async function start(){if(started)return;started=true;try{const response=await fetch(`${basePath}/manifest.json`,{signal:abort.signal});if(!response.ok)throw Error(response.status);const manifest=await response.json();if(dead)return;count=manifest.count;queue=Array.from({length:count},(_,i)=>i);resize();progress.jump(currentProgress());prioritize(Math.floor(clamp(progress.get())*(count-1)))}catch{/* Static poster fallback. */}}
-  const preload=new IntersectionObserver(entries=>{near=entries[0].isIntersecting;if(near){start();pump()}else if(mode==='flow'&&started){decoded.forEach(bitmap=>bitmap.close?.());decoded.clear();blobs.clear();queue=Array.from({length:count},(_,i)=>i)}},{rootMargin:'700px'});
+  async function start(){if(started)return;started=true;try{const response=await fetch(`${basePath}/manifest.json`,{signal:abort.signal});if(!response.ok)throw Error(response.status);const manifest=await response.json();if(dead)return;count=manifest.count;queue=[];resize();progress.jump(currentProgress());prioritize(Math.floor(clamp(progress.get())*(count-1)))}catch{/* Static poster fallback. */}}
+  const preload=new IntersectionObserver(entries=>{near=entries[0].isIntersecting;if(near){start();if(count)prioritize(Math.floor(clamp(progress.get())*(count-1)));pump()}else if(mode==='flow'&&started){decoded.forEach(bitmap=>bitmap.close?.());decoded.clear();blobs.clear();queue=[]}},{rootMargin:'700px'});
   const visibility=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){update();schedule()}});
   preload.observe(host);visibility.observe(host);
   const unsubscribe=progress.on('change',schedule),sizing=new ResizeObserver(resize);sizing.observe(host);sizing.observe(el);
