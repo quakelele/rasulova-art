@@ -1,0 +1,44 @@
+# Lenis section navigation
+
+Request: use Lenis and compose whole sections inside the screen instead of
+resting between fragments of adjacent sections. Preserve the existing artwork,
+palette, navigation, selection, and sole active hero animation.
+
+## Implementation
+
+- Lenis 1.3.27 owns smooth scrolling, anchor movement, and section transitions.
+  The old ScrollCraft mount and separate hero exit controller are no longer run.
+- The hero remains an interactive frame sequence. Its last frame completes at
+  the end of the pin; the next gesture advances to the statement. Upward input
+  can return to and scrub back through the hero.
+- Mouse wheel and trackpad gestures advance to the adjacent section. A gesture
+  tail is debounced, and reverse input can interrupt the transfer. Keyboard
+  navigation, Home, End, and pointer interruption are handled separately.
+- Screen sections use the dynamic viewport minus the fixed header. Gallery
+  images flex to the available space; duplicate gallery thumbnails are removed.
+  The category navigation belongs inside the collection's screen.
+- Touch retains native scrolling, then settles near a section boundary. Tall
+  sections allow continuous reading rather than hiding content. Horizontal
+  gestures remain with Swiper.
+- The selection desk can scroll internally, including on compact phones.
+  The contact screen includes the footer where available height permits.
+- Dialogs stop Lenis and retain their own native scrolling. Reduced motion
+  uses native wheel behavior and instant programmatic positioning.
+
+## Verification
+
+Production build, catalog checks, and the section navigation test pass.
+The section test covers desktop, laptop, phone, compact phone, and reduced
+motion, including gesture tails, reverse movement, anchors, and modal locking.
+Hero tests cover all frames through the pin, both directions, native touch,
+and horizontal gallery swipes. Additional checks cover eight selected works,
+language changes, the mobile menu, hash reload, reload to the hero, and Home/End
+interrupting an in-progress transition.
+
+Screenshots and reports: `artifacts/qa/lenis/`, `artifacts/qa/hero-exit/`.
+Desktop, laptop, tablet, standard phone, and compact phone compositions were
+inspected. The original overflowing atelier grid was fixed with an explicitly
+bounded grid column; the final captures show all visible gallery items.
+
+This is browser emulation in installed Chrome, not validation on a physical
+iPhone or Safari. No publishing or deployment was performed.

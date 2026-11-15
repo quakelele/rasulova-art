@@ -20,6 +20,7 @@ export default function SmoothCarousel({children,className='',...props}){
   lazyPreloadPrevNext={1}
   freeMode={{enabled:!reduced,sticky:true,momentum:true,momentumRatio:.65,momentumVelocityRatio:.8,momentumBounce:false,minimumVelocity:.015}}
   mousewheel={{forceToAxis:true,releaseOnEdges:true,sensitivity:.8}}
+  onPointerDownCapture={event=>{if(event.pointerType==='mouse')event.target.closest('button,a')?.focus({preventScroll:true})}}
   onSwiper={swiper=>{instance.current=swiper;props.onSwiper?.(swiper)}}
   onSliderFirstMove={swiper=>swiper.el.classList.add('is-dragging')}
   onTouchEnd={swiper=>swiper.el.classList.remove('is-dragging')}

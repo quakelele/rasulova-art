@@ -28,7 +28,7 @@ export default function ArtViewer({work,selected,onToggle,onClosed}){
   await controls.start({opacity:0,y:reduced?0:12,scale:reduced?1:.985,transition:{duration:reduced?0:.24,ease:[.4,0,.6,1]}});
   dialog.current?.close();onClosed();if(lastFocus.current?.isConnected)lastFocus.current.focus({preventScroll:true});
  }
- return <dialog ref={dialog} className={`premium-viewer${isClosing?' is-closing':''}`} aria-label={work?`${t('view')}: ${name}`:t('view')} onCancel={e=>{e.preventDefault();close()}} onClick={e=>{if(e.target===dialog.current)close()}}>
+ return <dialog ref={dialog} data-lenis-prevent className={`premium-viewer${isClosing?' is-closing':''}`} aria-label={work?`${t('view')}: ${name}`:t('view')} onCancel={e=>{e.preventDefault();close()}} onClick={e=>{if(e.target===dialog.current)close()}}>
   {work&&<motion.div className="viewer-shell" animate={controls} initial={{opacity:0}}>
    <header className="viewer-header"><span>RASULOVA ART</span><span>{t('viewerPrivate')}</span><button className="viewer-close" onClick={close} aria-label={t('closeViewer')}><X size={20}/></button></header>
    <div className="viewer-body"><div className="viewer-art">

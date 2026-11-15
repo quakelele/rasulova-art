@@ -1,4 +1,15 @@
-﻿<!doctype html><html lang="ru"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><meta name="theme-color" content="#f9f9f6"/><meta name="description" content="RASULOVA ART. Авторские вазы, декоративные блюда и объекты с характером. Рассмотрите работы и соберите свою маленькую выставку."/><title>RASULOVA ART | Объекты с характером</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><script src="/engine/scrollcraft.js"></script><style>
+﻿<!doctype html><html lang="ru"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><meta name="theme-color" content="#f9f9f6"/><meta name="description" content="RASULOVA ART. Авторские вазы, декоративные блюда и объекты с характером. Рассмотрите работы и соберите свою маленькую выставку."/><title>RASULOVA ART | Объекты с характером</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><script>
+// Reload starts at the hero; anchor links and history navigation keep their targets.
+(()=>{
+ const navigation=performance.getEntriesByType('navigation')[0];
+ if(navigation?.type!=='reload'||location.hash)return;
+ history.scrollRestoration='manual';
+ const reset=()=>window.scrollTo({top:0,left:0,behavior:'instant'});
+ reset();
+ window.addEventListener('pageshow',reset,{once:true});
+ window.addEventListener('pagehide',()=>{history.scrollRestoration='auto'},{once:true});
+})();
+</script><style>
 #startup-loader{position:fixed;inset:0;z-index:9999;background:#f9f9f6;display:grid;place-items:center;transition:opacity .25s}
 #startup-loader.is-ready{opacity:0;pointer-events:none}
 .spinner{font-size:28px;position:relative;display:inline-block;width:1em;height:1em}

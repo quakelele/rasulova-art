@@ -13,6 +13,7 @@ import LanguageSwitcher from '../components/navigation/LanguageSwitcher';
 import {works,resolveWorkId} from '../data/catalog';
 import {useLocale} from '../i18n/LocaleProvider';
 import useScrollReveals from '../hooks/useScrollReveals';
+import usePageScroll from '../hooks/usePageScroll';
 import {INSTAGRAM_URL} from '../data/contact-config';
 import {inquiryText,whatsappHref} from '../lib/contact';
 
@@ -23,9 +24,16 @@ export default function App(){
  const root=useRef(null),{t,locale}=useLocale(),picked=works.filter(work=>saved.includes(work.id));
  const showStories=experiments.motionStories&&new URLSearchParams(window.location.search).get('stories')!=='off';
  useScrollReveals(`${locale}:${saved.length}`);
+ usePageScroll(root,Boolean(active));
  const toggle=id=>setSaved(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);
  useEffect(()=>{try{localStorage.setItem('rasulova-selection',JSON.stringify(saved))}catch{}},[saved]);
- useEffect(()=>{const api=window.ScrollCraft?.mount(root.current);return()=>api?.destroy()},[]);
+ useEffect(()=>{
+  if(!window.location.hash)return;
+  const frame=requestAnimationFrame(()=>{
+   try{document.getElementById(decodeURIComponent(window.location.hash.slice(1)))?.scrollIntoView({behavior:'instant'})}catch{/* Ignore malformed anchors. */}
+  });
+  return()=>cancelAnimationFrame(frame);
+ },[]);
  useEffect(()=>{const frame=requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));return()=>cancelAnimationFrame(frame)},[locale,saved.length]);
  function openEntry(entry){if(!entry)return;if(!entry.isPhoto){setActive(entry);return}const owner=works.find(work=>work.id===entry.workId);setActive(owner?{...owner,initialImage:entry.image}:{...entry,name:'В мастерской',selectable:false,images:[entry.image]})}
  return <>

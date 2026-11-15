@@ -1,2 +1,3 @@
-// Set to false to remove the second scroll scene. ?interior=off previews the rollback.
-export const experiments={interiorScroll:true,motionStories:true};
+// Temporarily keep only the hero animation. Disabled media is stored outside
+// public in assets/disabled-media, so Vite does not include it in dist.
+export const experiments={interiorScroll:false,motionStories:false};
