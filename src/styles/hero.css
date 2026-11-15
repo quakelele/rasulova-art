@@ -9,15 +9,20 @@
 @media(prefers-reduced-motion:reduce){.hero.film{height:100svh!important;min-height:600px}.film-stage{position:relative;height:100%}.film-window{transform:none;clip-path:none}.film-copy{opacity:1!important;visibility:visible!important}.film-text-beat{display:none}.film-canvas{display:none}.film-poster{visibility:visible!important}}
 
 /* Enter only after the startup overlay has actually gone away. */
-.film-copy>*{opacity:0;transform:translateY(18px)}
-.is-introduced .film-copy>*{animation:film-copy-enter .7s cubic-bezier(.22,1,.36,1) both}
-.is-introduced .film-copy>:nth-child(2){animation-delay:.09s}
-.is-introduced .film-copy>:nth-child(3){animation-delay:.18s}
-.is-introduced .film-copy>:nth-child(4){animation-delay:.27s}
+.film-title-line{display:block}
+.film-copy>.film-eyebrow,.film-copy .film-title-line,.film-copy>p,.film-copy>.line-link{opacity:0;transform:translateY(24px)}
+.is-introduced .film-copy>.film-eyebrow,
+.is-introduced .film-copy .film-title-line,
+.is-introduced .film-copy>p,
+.is-introduced .film-copy>.line-link{animation:film-copy-enter .85s cubic-bezier(.22,1,.36,1) both}
+.is-introduced .film-copy .film-title-line:first-child{animation-delay:.12s}
+.is-introduced .film-copy .film-title-line:last-child{animation-delay:.26s}
+.is-introduced .film-copy>p{animation-delay:.4s}
+.is-introduced .film-copy>.line-link{animation-delay:.54s}
 .film-caption,.film-mat{opacity:0}
-.is-introduced .film-caption,.is-introduced .film-mat{animation:film-copy-enter .6s .25s ease-out both}
-@keyframes film-copy-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-@media(prefers-reduced-motion:reduce){.film-copy>*,.film-caption,.film-mat{opacity:1;transform:none;animation:none!important}}
+.is-introduced .film-caption,.is-introduced .film-mat{animation:film-copy-enter .6s .65s ease-out both}
+@keyframes film-copy-enter{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.film-copy>*,.film-copy .film-title-line,.film-caption,.film-mat{opacity:1;transform:none;animation:none!important}}
 
 /* Mobile has a separate text area, so readability never requires whitening
    or painting over the original video pixels. */

@@ -6,10 +6,11 @@
   "sourceSha256": "7f83c08936ce2d6ed1ff5196f8bfdaba27511e2350e3aa572be67d13360f3505",
   "width": 1920,
   "height": 1080,
-  "encoding": "webp-lossless",
+  "encoding": "webp-lossy",
   "frameDirectory": "frames",
   "poster": "frames/frame-000.webp",
   "direction": "forward",
   "resized": false,
-  "frameRateChanged": false
+  "frameRateChanged": false,
+  "quality": 95
 }
