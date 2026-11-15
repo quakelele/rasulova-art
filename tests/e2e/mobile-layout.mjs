@@ -13,7 +13,8 @@ try{
  const page=await context.newPage();await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});await page.locator('#startup-loader').waitFor({state:'detached'});
  await page.evaluate(()=>{window.__canvas={writes:0,unchanged:0};for(let i=0;i<12;i++)window.dispatchEvent(new Event('resize'))});
  const canvas=await page.evaluate(()=>window.__canvas);
- await page.locator('.statement').evaluate(e=>scrollTo({top:e.getBoundingClientRect().top+scrollY-document.querySelector('.header').offsetHeight,behavior:'instant'}));await page.waitForTimeout(300);
+ await page.waitForFunction(()=>document.querySelector('.hero').dataset.sequenceComplete==='true');
+ await page.locator('.statement').evaluate(e=>scrollTo({top:e.offsetTop+e.offsetHeight-innerHeight,behavior:'instant'}));await page.waitForTimeout(300);
  const cdp=await context.newCDPSession(page);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:190,y:600}]});
  for(let y=590;y>=520;y-=10){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:190,y}]});await page.waitForTimeout(18)}

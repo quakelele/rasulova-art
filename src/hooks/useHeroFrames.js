@@ -56,9 +56,16 @@ export default function useHeroFrames(section,canvas,windowRef,enabled){
     ctx.globalAlpha=1;ctx.drawImage(decoded.get(i),0,0,el.width,el.height);
     if(blend>.001){ctx.globalAlpha=blend;ctx.drawImage(decoded.get(next),0,0,el.width,el.height);ctx.globalAlpha=1}drawn=cursor;
    }
-   const p=clamp((cursor-INTRO_LAST_FRAME)/(count-1-INTRO_LAST_FRAME)),intro=clamp((.18-p)/.07),values=[clamp((p-.20)/.05)*clamp((.40-p)/.04),clamp((p-.42)/.06)*clamp((.65-p)/.04),clamp((p-.67)/.06)];
+   const textProgress=cursor/(count-1);
+   const crossfade=value=>{const p=clamp(value);return p*p*(3-2*p)};
+   const intro=1-crossfade((textProgress-.52)/.22);
+   const finale=crossfade((textProgress-.56)/.22);
    copy.style.opacity=intro;copy.style.visibility=intro<.015?'hidden':'visible';
-   beats.forEach((node,n)=>{node.style.opacity=values[n];node.style.visibility=values[n]<.015?'hidden':'visible';node.style.transform=`translateY(${(1-values[n])*12}px)`});
+   beats.forEach(node=>{
+    node.style.opacity=finale;
+    node.style.visibility=finale<.015?'hidden':'visible';
+    node.style.transform=`translateY(${(1-finale)*8}px)`;
+   });
    if(drawn>=0&&!announced){announced=true;window.dispatchEvent(new Event('hero-ready'))}
    if(autoplay&&cursor>=count-1-.001){autoplay=false;holdEnd=true}
    host.dataset.autoplay=String(autoplay);

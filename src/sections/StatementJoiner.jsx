@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {ArrowUpRight} from 'lucide-react';
 import {useLocale} from '../i18n/LocaleProvider';
 
+const ASSEMBLED_AT=.9;
 const photo='/media/images/photo_2026-08-02_11-25-30.webp';
 const tiles=Array.from({length:24},(_,index)=>({
  x:index%4,y:Math.floor(index/4),
@@ -36,14 +37,22 @@ export default function StatementJoiner(){
   function paint(now){
    frame=0;
    if(!visible)return;
-   const rect=host.getBoundingClientRect();
    const header=document.querySelector('.header').offsetHeight;
-   const target=reduced.matches?1:clamp((header-rect.top)/Math.max(1,host.offsetHeight-innerHeight+header));
+   const viewport=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--page-height'))||innerHeight;
+   let sectionTop=0;
+   for(let node=host;node;node=node.offsetParent)sectionTop+=node.offsetTop;
+   const travel=Math.max(1,host.offsetHeight-viewport+header);
+   const distance=scrollY-sectionTop+header;
+   let target=clamp(distance/travel);
+   // The scroll controller uses layout coordinates and rounded browser pixels.
+   if(distance>=travel*ASSEMBLED_AT-1)target=ASSEMBLED_AT;
+   if(distance<=1)target=0;
+   if(reduced.matches)target=ASSEMBLED_AT;
    const dt=Math.min(50,lastTime?now-lastTime:16);
    lastTime=now;
    progress=reduced.matches?target:progress+(target-progress)*(1-Math.exp(-dt/35));
    if(Math.abs(target-progress)<.0005)progress=target;
-   const amount=clamp(progress/.9);
+   const amount=clamp(progress/ASSEMBLED_AT);
    requestedStage=progress<.3?0:progress<.68?1:2;
    if(!textChangedAt&&visible)textChangedAt=performance.now();
    if(!textTimer)updateText();
@@ -101,7 +110,7 @@ export default function StatementJoiner(){
    stageElement.removeEventListener('pointermove',move);stageElement.removeEventListener('pointerleave',leave);
   };
  },[]);
- return <section ref={section} className={`statement statement-joiner${failed?' is-image-unavailable':''}`} data-sc-act="pin" aria-labelledby="statement-title">
+ return <section ref={section} className={`statement statement-joiner${failed?' is-image-unavailable':''}`} data-sc-act="pin" data-scroll-complete-at={ASSEMBLED_AT} aria-labelledby="statement-title">
   <div className="joiner-stage">
    <div className="joiner-copy">
     <span className="small-note">{t('joinerTag')}</span>

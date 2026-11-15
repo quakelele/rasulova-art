@@ -18,6 +18,7 @@ export default function usePageScroll(root,blocked){
   const page=document.documentElement;
   const heroVisual=root.current.querySelector('.hero');
   let lastHeroExit='';
+  let wheelReading=null,wheelReadingTimer=0;
   let viewportHeight=innerHeight,viewportWidth=innerWidth,viewportPending=false,viewportTimer=0,landing=null,nativeTransition=null,nativeFinishTimer=0,transitionWatchdog=0;
   page.style.setProperty('--page-height',`${viewportHeight}px`);
   page.classList.toggle('is-short-viewport',viewportHeight<=740);
@@ -30,7 +31,9 @@ export default function usePageScroll(root,blocked){
    const inset=header.offsetHeight,viewport=viewportHeight-inset,hero=root.current.querySelector('.hero');
    heroEnd=Math.max(0,top(hero)+hero.offsetHeight-viewportHeight);
    sections=[...root.current.querySelectorAll(sectionSelector)].map(el=>{
-    const start=top(el)-inset,end=Math.max(start,top(el)+el.offsetHeight-viewportHeight);
+    const start=top(el)-inset,physicalEnd=Math.max(start,top(el)+el.offsetHeight-viewportHeight);
+    const completion=Number(el.dataset.scrollCompleteAt)||1;
+    const end=start+(physicalEnd-start)*completion;
     const tall=el.offsetHeight>viewport+3;
     el.toggleAttribute('data-page-snap',!touchDevice.matches&&!reduced.matches&&(!tall||directionalPan)&&!el.matches('.selection-inquiry'));
     el.toggleAttribute('data-page-tall',tall);
@@ -56,13 +59,15 @@ export default function usePageScroll(root,blocked){
    page.style.setProperty('--page-height',`${viewportHeight}px`);
    page.classList.toggle('is-short-viewport',viewportHeight<=740);
    measure();
-   if(anchor?.el.isConnected)lenis.scrollTo(anchor.edge==='end'?top(anchor.el)+anchor.el.offsetHeight-viewportHeight:top(anchor.el)-header.offsetHeight,{immediate:true});
+   const anchorSection=sections.find(s=>s.el===anchor?.el);
+   if(anchorSection)lenis.scrollTo(anchor.edge==='end'?anchorSection.end:anchorSection.start,{immediate:true});
    else if(filmProgress!==null)lenis.scrollTo(filmProgress*heroEnd,{immediate:true});
    else if(reading)lenis.scrollTo(top(reading.el)-header.offsetHeight+offset,{immediate:true});
    landing=null;
    window.dispatchEvent(new Event('page-viewport-change'));
   }
   function resizeViewport(){
+   clearWheelReading();
    viewportPending=viewportHeight!==innerHeight||viewportWidth!==innerWidth;
    clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,180);
    queueMeasure();
@@ -71,6 +76,18 @@ export default function usePageScroll(root,blocked){
   function nativeArea(y,dir){
    if(y<heroEnd-3||(dir<0&&y<=heroEnd+3))return true;
    return sections.some(s=>s.tall&&y>=s.start-3&&y<=s.end+3&&((dir>0&&y<s.end-3)||(dir<0&&y>s.start+3)));
+  }
+  function clearWheelReading(){wheelReading=null;clearTimeout(wheelReadingTimer)}
+  function readingSection(y,dir){
+   return sections.find(s=>s.tall&&!s.el.matches('.selection-inquiry')&&y>=s.start-3&&y<=s.end+3&&
+    ((dir>0&&y<s.end-3)||(dir<0&&y>s.start+3)));
+  }
+  function readingTarget(section,value,dir){
+   const target=Math.max(section.start,Math.min(section.end,value));
+   if(!section.el.dataset.scrollCompleteAt)return target;
+   const edge=dir>0?section.end:section.start;
+   const settleDistance=Math.min(24,(section.end-section.start)*.12);
+   return Math.abs(target-edge)<=settleDistance?edge:target;
   }
   const mobileFormTarget=target=>touchDevice.matches&&target instanceof Element&&Boolean(target.closest('.selection-inquiry'));
   const mobileFormPosition=()=>touchDevice.matches&&sections.some(s=>s.el.matches('.selection-inquiry')&&scrollY>=s.start-3&&scrollY<s.start+s.el.offsetHeight);
@@ -170,6 +187,7 @@ export default function usePageScroll(root,blocked){
    if(url.origin!==location.origin||url.pathname!==location.pathname||url.search!==location.search||!url.hash)return;
    let target;try{target=document.getElementById(decodeURIComponent(url.hash.slice(1)))}catch{return}
    if(!target)return;
+   clearWheelReading();
    event.preventDefault();measure();history.pushState(null,'',url.hash);go(top(target)-header.offsetHeight);
   }
   function destination(dir,y=window.scrollY){return dir>0?points.find(p=>p>y+4):points.findLast(p=>p<y-4)}
@@ -178,11 +196,24 @@ export default function usePageScroll(root,blocked){
     if(event.deltaY>=0){event.preventDefault();return}
     window.scrollTo({top:scrollY,behavior:'instant'});lenis.reset();completeTransition();
    }
-   if(touchDevice.matches&&scrollY>heroEnd+3){releaseNativeScroll();return}
    if(reduced.matches||unavailable()||event.ctrlKey||event.metaKey||protectedTarget(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
    const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1),dir=Math.sign(delta);
    if(!dir)return;
+   if(wheelReading?.dir!==dir)wheelReading=null;
+   const reading=wheelReading?.section||readingSection(scrollY,dir);
+   if(reading){
+    event.preventDefault();
+    wheelReading={section:reading,dir};
+    clearTimeout(wheelReadingTimer);
+    wheelReadingTimer=setTimeout(()=>{wheelReading=null},240);
+    const origin=moving?scrollY:lenis.targetScroll;
+    if(moving){window.scrollTo({top:scrollY,behavior:'instant'});lenis.reset();completeTransition()}
+    const target=readingTarget(reading,origin+delta,dir);
+    lenis.scrollTo(target,{programmatic:false,lerp:.14});
+    return;
+   }
    if(scrollY<=heroEnd+3&&heroEnd>0){event.preventDefault();scrubHero(lenis.targetScroll+delta,false);return}
+   if(touchDevice.matches&&scrollY>heroEnd+3){releaseNativeScroll();return}
    if(nativeArea(scrollY,dir))return;
    event.preventDefault();
    if(moving&&!nativeTransition&&lenis.userData?.initiator!=='section')moving=false;
@@ -197,14 +228,23 @@ export default function usePageScroll(root,blocked){
    if(heroHandoff&&['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key)){event.preventDefault();return}
    if(touchDevice.matches&&scrollY>heroEnd+3)return;
    if(reduced.matches||unavailable()||protectedTarget(event.target)||event.target.closest?.('button,a,summary')||event.ctrlKey||event.metaKey||event.altKey)return;
+   clearWheelReading();
    if(event.key==='Home'||event.key==='End'){event.preventDefault();go(event.key==='Home'?0:lenis.limit);return}
    const dir=['PageDown','ArrowDown',' '].includes(event.key)?(event.shiftKey?-1:1):['PageUp','ArrowUp'].includes(event.key)?-1:0;
    if(!dir)return;
    if(scrollY<=heroEnd+3&&heroEnd>0){event.preventDefault();scrubHero(scrollY+dir*(event.key.startsWith('Page')||event.key===' '?viewportHeight*.8:80),false);return}
+   const reading=readingSection(scrollY,dir);
+   if(reading){
+    event.preventDefault();
+    const distance=event.key.startsWith('Page')||event.key===' '?viewportHeight*.8:80;
+    lenis.scrollTo(readingTarget(reading,scrollY+dir*distance,dir),{duration:.3});
+    return;
+   }
    if(nativeArea(scrollY,dir))return;
    event.preventDefault();if(!event.repeat)go(destination(dir));
   }
   function touchStart(event){
+   clearWheelReading();
    touchDown=true;
    if(touchDevice.matches&&scrollY>heroEnd+3&&!heroHandoff){
     releaseNativeScroll();
@@ -233,6 +273,7 @@ export default function usePageScroll(root,blocked){
     if(gesture.kind==='bounded'&&gesture.axis==='vertical'){
      const inquiry=sections.find(s=>s.el.matches('.selection-inquiry'));
      const readingInquiry=inquiry&&gesture.scroll>=inquiry.start-3&&gesture.scroll<inquiry.start+inquiry.el.offsetHeight;
+     gesture.reading=readingInquiry?null:readingSection(gesture.scroll,Math.sign(dy));
      gesture.chapter=!readingInquiry&&!nativeArea(gesture.scroll,Math.sign(dy));
     }
     if(gesture.kind!=='bounded')gesture.kind=gesture.axis==='vertical'?(gesture.hero?'hero':gesture.snap&&!nativeArea(gesture.scroll,Math.sign(dy))?'section':'native'):'native';
@@ -241,7 +282,8 @@ export default function usePageScroll(root,blocked){
     if(event.cancelable)event.preventDefault();
     const range=viewportHeight*(gesture.chapter ? .22 : .95);
     const delta=Math.max(-range,Math.min(range,dy*(gesture.chapter ? .3 : 1)));
-    gesture.target=Math.max(0,Math.min(lenis.limit,gesture.scroll+delta));
+    gesture.target=gesture.reading?readingTarget(gesture.reading,gesture.scroll+delta,Math.sign(dy)):
+     Math.max(0,Math.min(lenis.limit,gesture.scroll+delta));
     if(!touchFrame)touchFrame=requestAnimationFrame(()=>{touchFrame=0;if(touchGesture===gesture){window.scrollTo({top:gesture.target,behavior:'instant'});lenis.reset()}});
    }
    if(gesture.kind==='hero'&&!heroHandoff)scrubHero(gesture.scroll+dy,true);
@@ -284,6 +326,7 @@ export default function usePageScroll(root,blocked){
    if(nativeTransition){clearTimeout(nativeFinishTimer);nativeFinishTimer=setTimeout(finishNative,160)}
   };
   const onPointer=()=>{
+   clearWheelReading();
    if(heroHandoff){window.scrollTo({top:scrollY,behavior:'instant'});lenis.reset();completeTransition()}
    if(moving||lenis.isScrolling==='smooth'){window.scrollTo({top:scrollY,behavior:'instant'});lenis.reset();moving=false;landing=null;nativeTransition=null;clearTimeout(nativeFinishTimer)}
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,180)}
@@ -301,7 +344,7 @@ export default function usePageScroll(root,blocked){
   const sizing=new ResizeObserver(queueMeasure);sizing.observe(root.current);sizing.observe(header);
   measure();
   return()=>{
-   clearTimeout(transitionWatchdog);clearTimeout(gestureTimer);cancelAnimationFrame(heroHandoffFrame);clearTimeout(nativeFinishTimer);clearTimeout(viewportTimer);cancelAnimationFrame(touchFrame);cancelAnimationFrame(measureFrame);sizing.disconnect();
+   clearTimeout(wheelReadingTimer);clearTimeout(transitionWatchdog);clearTimeout(gestureTimer);cancelAnimationFrame(heroHandoffFrame);clearTimeout(nativeFinishTimer);clearTimeout(viewportTimer);cancelAnimationFrame(touchFrame);cancelAnimationFrame(measureFrame);sizing.disconnect();
    removeEventListener('wheel',wheel,true);removeEventListener('keydown',key);removeEventListener('touchstart',touchStart);
    removeEventListener('touchmove',touchMove);removeEventListener('touchend',touchEnd);removeEventListener('touchcancel',touchCancel);removeEventListener('scroll',onScroll);
    removeEventListener('pointerdown',onPointer);removeEventListener('resize',resizeViewport);lenis.destroy();instance.current=null;refreshViewport.current=null;
