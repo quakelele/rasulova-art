@@ -22,7 +22,7 @@ export default function usePageScroll(root,blocked){
   page.style.setProperty('--page-height',`${viewportHeight}px`);
   page.classList.toggle('is-short-viewport',viewportHeight<=740);
   let sections=[],points=[],heroEnd=0,measureFrame=0,gestureTimer=0,touchFrame=0,heroHandoffFrame=0;
-  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,heroHandoff=false,heroArmed=true,touchDown=false,handoffPending=false,heroWheelQuietUntil=0,lastScrollY=scrollY;
+  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,heroHandoff=false,heroArmed=true,touchDown=false,handoffPending=false,lastScrollY=scrollY;
   // Layout coordinates remain stable while chapter cards scale.
   const top=el=>{let y=0;for(let node=el;node;node=node.offsetParent)y+=node.offsetTop;return y};
   function measure(){
@@ -111,7 +111,7 @@ export default function usePageScroll(root,blocked){
   function completeTransition(){
    handoffPending=false;cancelAnimationFrame(heroHandoffFrame);
    moving=false;nativeTransition=null;clearTimeout(nativeFinishTimer);clearTimeout(transitionWatchdog);
-   if(heroHandoff){heroHandoff=false;heroWheelQuietUntil=performance.now()+240;page.classList.remove('is-hero-handoff');root.current.querySelector('.hero').dataset.exitState='complete'}
+   if(heroHandoff){heroHandoff=false;page.classList.remove('is-hero-handoff');root.current.querySelector('.hero').dataset.exitState='complete'}
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,0)}else landing=null;
   }
   function finishNative(){if(nativeTransition&&Math.abs(scrollY-nativeTransition.target)<2)completeTransition()}
@@ -133,6 +133,10 @@ export default function usePageScroll(root,blocked){
    }else lenis.scrollTo(y,{duration:.92,lerp:0,easing:ease,userData:{initiator:'section'},onComplete:completeTransition});
   }
   function scrubHero(y,immediate){
+   if(y>scrollY+1&&heroVisual.dataset.sequenceComplete==='true'){
+    window.scrollTo({top:heroEnd,behavior:'instant'});lenis.reset();
+    heroArmed=true;finishHero();return;
+   }
    const target=Math.max(0,Math.min(heroEnd,y));
    // A fresh downward gesture at a previously visited final frame must exit,
    // even though the renderer has no new frame to announce.
@@ -170,8 +174,9 @@ export default function usePageScroll(root,blocked){
   }
   function destination(dir,y=window.scrollY){return dir>0?points.find(p=>p>y+4):points.findLast(p=>p<y-4)}
   function wheel(event){
-   if(!reduced.matches&&(heroHandoff||performance.now()<heroWheelQuietUntil)){
-    event.preventDefault();heroWheelQuietUntil=performance.now()+240;return;
+   if(!reduced.matches&&heroHandoff){
+    if(event.deltaY>=0){event.preventDefault();return}
+    window.scrollTo({top:scrollY,behavior:'instant'});lenis.reset();completeTransition();
    }
    if(touchDevice.matches&&scrollY>heroEnd+3){releaseNativeScroll();return}
    if(reduced.matches||unavailable()||event.ctrlKey||event.metaKey||protectedTarget(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
@@ -236,7 +241,7 @@ export default function usePageScroll(root,blocked){
     if(event.cancelable)event.preventDefault();
     const range=viewportHeight*(gesture.chapter ? .22 : .95);
     const delta=Math.max(-range,Math.min(range,dy*(gesture.chapter ? .3 : 1)));
-    gesture.target=Math.max(heroEnd,Math.min(lenis.limit,gesture.scroll+delta));
+    gesture.target=Math.max(0,Math.min(lenis.limit,gesture.scroll+delta));
     if(!touchFrame)touchFrame=requestAnimationFrame(()=>{touchFrame=0;if(touchGesture===gesture){window.scrollTo({top:gesture.target,behavior:'instant'});lenis.reset()}});
    }
    if(gesture.kind==='hero'&&!heroHandoff)scrubHero(gesture.scroll+dy,true);
