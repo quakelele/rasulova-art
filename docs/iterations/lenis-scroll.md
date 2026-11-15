@@ -44,3 +44,19 @@ bounded grid column; the final captures show all visible gallery items.
 
 This is browser emulation in installed Chrome, not validation on a physical
 iPhone or Safari. No publishing or deployment was performed.
+
+## Mobile viewport jitter follow-up
+
+A changing viewport during a section animation reproduced a 353 px landing
+error. Twelve redundant resize events also reset the hero canvas 24 times
+without changing either dimension. Evidence: `artifacts/qa/mobile-jank/`.
+
+The page now commits viewport-height changes once scrolling/gestures settle,
+then preserves the destination section or reading position. The short-viewport
+layout switches at the same time; it no longer flips during browser chrome
+movement. Canvas dimensions are assigned only when they change, with an
+immediate redraw after a real resize. Image-triggered AOS refreshes are batched,
+and blanket layer promotion for offscreen AOS elements was removed.
+
+The reproduction now reports zero landing error and zero redundant canvas
+resets. `npm run test:mobile-layout` retains this regression check.
