@@ -9,17 +9,18 @@ export default function usePageScroll(root,blocked){
  const instance=useRef(null),refreshViewport=useRef(null);
  useEffect(()=>{
   const reduced=matchMedia('(prefers-reduced-motion: reduce)'),touchDevice=matchMedia('(pointer:coarse), (max-width:700px)'),header=document.querySelector('.header');
+  const nativeWheelEvents=new WeakSet();
   const lenis=new Lenis({autoRaf:true,lerp:.11,smoothWheel:true,syncTouch:false,
-   virtualScroll:({event})=>!event.defaultPrevented,
+   virtualScroll:({event})=>!event.defaultPrevented&&!nativeWheelEvents.has(event),
    anchors:false,
-   stopInertiaOnNavigate:true,prevent:node=>node.matches?.('dialog,textarea,[contenteditable=true]')||(node.matches?.('.inquiry-desk')&&node.scrollHeight>node.clientHeight+2)});
+   stopInertiaOnNavigate:true,prevent:node=>node.matches?.('dialog,textarea,[contenteditable=true]')||(touchDevice.matches&&node.matches?.('.selection-inquiry'))||(node.matches?.('.inquiry-desk')&&node.scrollHeight>node.clientHeight+2)});
   instance.current=lenis;
   const page=document.documentElement;
   let viewportHeight=innerHeight,viewportWidth=innerWidth,viewportPending=false,viewportTimer=0,landing=null,nativeTransition=null,nativeFinishTimer=0;
   page.style.setProperty('--page-height',`${viewportHeight}px`);
   page.classList.toggle('is-short-viewport',viewportHeight<=740);
   let sections=[],points=[],heroEnd=0,measureFrame=0,gestureTimer=0,touchTimer=0,touchFrame=0,nativeTimer=0,nativeIntent=0;
-  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,touchPending=false,touchDirection=0;
+  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,touchPending=false,touchDirection=0,nativeWheelUntil=0;
   const top=el=>el.getBoundingClientRect().top+window.scrollY;
   function measure(){
    measureFrame=0;lenis.resize();
@@ -32,6 +33,7 @@ export default function usePageScroll(root,blocked){
     return {el,start,end,tall};
    });
    points=[...new Set([heroEnd,...sections.flatMap(s=>s.tall?[s.start,s.end]:[s.start]),lenis.limit].map(y=>Math.round(Math.max(0,Math.min(y,lenis.limit)))))].sort((a,b)=>a-b);
+   syncFormMode();
   }
   function queueMeasure(){if(!measureFrame)measureFrame=requestAnimationFrame(measure)}
   function updateViewport(){
@@ -64,8 +66,19 @@ export default function usePageScroll(root,blocked){
    if(y<heroEnd-3||(dir<0&&y<=heroEnd+3))return true;
    return sections.some(s=>s.tall&&y>=s.start-3&&y<=s.end+3&&((dir>0&&y<s.end-3)||(dir<0&&y>s.start+3)));
   }
+  const mobileFormTarget=target=>touchDevice.matches&&target instanceof Element&&Boolean(target.closest('.selection-inquiry'));
+  const mobileFormPosition=()=>touchDevice.matches&&sections.some(s=>s.el.matches('.selection-inquiry')&&scrollY>=s.start-3&&scrollY<s.start+s.el.offsetHeight);
+  function syncFormMode(){page.classList.toggle('is-reading-inquiry',mobileFormPosition())}
+  function releaseFormScroll(){
+   nativeIntent=0;touchPending=false;clearTimeout(nativeTimer);clearTimeout(touchTimer);cancelAnimationFrame(touchFrame);
+   if(moving||nativeTransition||lenis.isScrolling==='smooth'){
+    window.scrollTo({top:scrollY,behavior:'instant'});
+    lenis.reset();moving=false;nativeTransition=null;landing=null;clearTimeout(nativeFinishTimer);
+   }
+  }
   const protectedTarget=target=>{
    if(!(target instanceof Element))return false;
+   if(mobileFormTarget(target))return true;
    if(target.closest('dialog,[data-lenis-prevent],textarea,input,select,[contenteditable=true]'))return true;
    const desk=target.closest('.inquiry-desk');return desk&&desk.scrollHeight>desk.clientHeight+2;
   };
@@ -99,6 +112,9 @@ export default function usePageScroll(root,blocked){
   }
   function destination(dir,y=window.scrollY){return dir>0?points.find(p=>p>y+4):points.findLast(p=>p<y-4)}
   function wheel(event){
+   if(touchDevice.matches&&(mobileFormTarget(event.target)||mobileFormPosition()||performance.now()<nativeWheelUntil)){
+    nativeWheelUntil=performance.now()+240;nativeWheelEvents.add(event);releaseFormScroll();return;
+   }
    if(reduced.matches||unavailable()||event.ctrlKey||event.metaKey||protectedTarget(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
    const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1),dir=Math.sign(delta);
    if(!dir)return;
@@ -114,6 +130,7 @@ export default function usePageScroll(root,blocked){
    consumed=true;go(destination(dir));
   }
   function key(event){
+   if(mobileFormPosition())return;
    if(reduced.matches||unavailable()||protectedTarget(event.target)||event.target.closest?.('button,a,summary')||event.ctrlKey||event.metaKey||event.altKey)return;
    if(event.key==='Home'||event.key==='End'){event.preventDefault();nativeIntent=0;go(event.key==='Home'?0:lenis.limit);return}
    const dir=['PageDown','ArrowDown',' '].includes(event.key)?(event.shiftKey?-1:1):['PageUp','ArrowUp'].includes(event.key)?-1:0;
@@ -132,9 +149,11 @@ export default function usePageScroll(root,blocked){
    },180);
   }
   function touchStart(event){
+   const freeForm=mobileFormTarget(event.target)||mobileFormPosition();
+   if(freeForm)releaseFormScroll();
    touchPending=false;clearTimeout(touchTimer);cancelAnimationFrame(touchFrame);
    const finger=event.touches[0];
-   touchGesture=event.touches.length!==1||!finger||reduced.matches||unavailable()||protectedTarget(event.target)?null:
+   touchGesture=event.touches.length!==1||!finger||reduced.matches||unavailable()||freeForm||protectedTarget(event.target)?null:
     {x:finger.clientX,y:finger.clientY,scroll:scrollY,axis:null,kind:null,snap:Boolean(event.target.closest?.('[data-page-snap]')),free:Boolean(event.target.closest?.('.selection-inquiry'))};
   }
   function touchMove(event){
@@ -166,7 +185,9 @@ export default function usePageScroll(root,blocked){
    touchPending=true;settleTouch();
   }
   const onScroll=()=>{
+   syncFormMode();
    if(nativeTransition){clearTimeout(nativeFinishTimer);nativeFinishTimer=setTimeout(finishNative,160)}
+   if(mobileFormPosition()){nativeIntent=0;touchPending=false;clearTimeout(nativeTimer);clearTimeout(touchTimer);return}
    if(touchPending)settleTouch();
    clearTimeout(nativeTimer);
    if(!nativeIntent||moving||reduced.matches||scrollY<=heroEnd+3||nativeArea(scrollY,1))return;
@@ -199,7 +220,7 @@ export default function usePageScroll(root,blocked){
    removeEventListener('touchmove',touchMove);removeEventListener('touchend',touchEnd);removeEventListener('touchcancel',touchCancel);removeEventListener('scroll',onScroll);
    removeEventListener('pointerdown',onPointer);removeEventListener('resize',resizeViewport);lenis.destroy();instance.current=null;refreshViewport.current=null;
    removeEventListener('scrollend',finishNative);removeEventListener('click',anchorClick);
-   page.style.removeProperty('--page-height');page.classList.remove('is-short-viewport');
+   page.style.removeProperty('--page-height');page.classList.remove('is-short-viewport','is-reading-inquiry');
    reduced.removeEventListener('change',queueMeasure);sections.forEach(s=>s.el.removeAttribute('data-page-snap'));
   };
  },[root]);

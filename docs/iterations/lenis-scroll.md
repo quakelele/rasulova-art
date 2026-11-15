@@ -87,3 +87,21 @@ These measurements are not real-device FPS or proof of Samsung browser behavior.
 loads an opt-in JS frame-cadence/long-task overlay on the actual page. The overlay
 is a separate chunk and is not requested on normal visits. It explicitly labels
 JS cadence as distinct from compositor/screen FPS. No deployment was performed.
+
+## Personal choice: exclusive native gesture ownership
+
+The mobile form is now excluded from Lenis input handling and section snapping
+regardless of whether its content happens to fit the viewport. A wheel gesture
+that starts there retains native ownership through its event tail, even when
+the pointer ends up over a neighboring section. Entering the form cancels any
+previous smooth transition and clears its pending snap timers. Touch gestures
+from the form or its current viewport never schedule a section handoff.
+The CSS vertical-pan lock is also released for visible neighboring sections
+while the form is being read, so dragging the contact preview below it does not
+trap the page at the form's lower edge.
+
+`npm run test:inquiry-runaway` exercises touch and wheel in both directions,
+including a larger phone where the form can fit. It checks zero scripted scroll
+calls after ordinary form input, no wheel delta amplification, and a stable
+position after input ends. The form continues to use document scrolling with
+reachable WhatsApp/copy actions, rather than a nested scroll panel.
