@@ -17,9 +17,11 @@ palette, navigation, selection, and sole active hero animation.
 - Screen sections use the dynamic viewport minus the fixed header. Gallery
   images flex to the available space; duplicate gallery thumbnails are removed.
   The category navigation belongs inside the collection's screen.
-- Touch retains native scrolling, then settles near a section boundary. Tall
-  sections allow continuous reading rather than hiding content. Horizontal
-  gestures remain with Swiper.
+- A vertical touch gesture outside the film and tall content advances exactly
+  one section through Lenis. Gesture direction is locked after 8 px of travel;
+  a deliberate swipe of at least 32 px commits on release, without browser fling
+  momentum skipping screens. Horizontal gestures remain with Swiper; the film,
+  tall sections, nested panels, and multi-touch gestures remain native.
 - The selection desk can scroll internally, including on compact phones.
   The contact screen includes the footer where available height permits.
 - Dialogs stop Lenis and retain their own native scrolling. Reduced motion

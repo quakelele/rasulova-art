@@ -14,8 +14,8 @@ export default function usePageScroll(root,blocked){
    anchors:{duration:1.05,lerp:0,easing:ease,force:true},
    stopInertiaOnNavigate:true,prevent:node=>node.matches?.('dialog,textarea,[contenteditable=true]')||(node.matches?.('.inquiry-desk')&&node.scrollHeight>node.clientHeight+2)});
   instance.current=lenis;
-  let sections=[],points=[],heroEnd=0,measureFrame=0,gestureTimer=0,touchTimer=0,nativeTimer=0,nativeIntent=0;
-  let direction=0,gestureTotal=0,consumed=false,moving=false,touchStartY=null,touchStartScroll=0,touchPending=false,touchDirection=0;
+  let sections=[],points=[],heroEnd=0,measureFrame=0,gestureTimer=0,touchTimer=0,touchFrame=0,nativeTimer=0,nativeIntent=0;
+  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,touchPending=false,touchDirection=0;
   const top=el=>el.getBoundingClientRect().top+window.scrollY;
   function measure(){
    measureFrame=0;lenis.resize();
@@ -78,15 +78,37 @@ export default function usePageScroll(root,blocked){
    },180);
   }
   function touchStart(event){
-   touchPending=false;clearTimeout(touchTimer);
-   touchStartY=protectedTarget(event.target)?null:event.touches[0]?.clientY;
-   touchStartScroll=scrollY;
+   touchPending=false;clearTimeout(touchTimer);cancelAnimationFrame(touchFrame);
+   const finger=event.touches[0];
+   touchGesture=event.touches.length!==1||!finger||reduced.matches||unavailable()||protectedTarget(event.target)?null:
+    {x:finger.clientX,y:finger.clientY,scroll:scrollY,axis:null,kind:null};
+  }
+  function touchMove(event){
+   const gesture=touchGesture,finger=event.touches[0];
+   if(!gesture||!finger)return;
+   if(event.touches.length!==1){touchGesture=null;return}
+   const dx=gesture.x-finger.clientX,dy=gesture.y-finger.clientY;
+   if(!gesture.axis){
+    if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;
+    gesture.axis=Math.abs(dx)>Math.abs(dy)?'horizontal':'vertical';
+    gesture.kind=gesture.axis==='vertical'&&!nativeArea(gesture.scroll,Math.sign(dy))?'section':'native';
+   }
+   // Claim vertical section gestures before the browser starts touch momentum.
+   // Horizontal gestures, the film, nested panels, and zoom remain native.
+   if(gesture.kind==='section'&&event.cancelable)event.preventDefault();
   }
   function touchEnd(event){
-   if(touchStartY===null)return;
-   const delta=touchStartY-(event.changedTouches[0]?.clientY??touchStartY);
-   touchStartY=null;touchDirection=Math.sign(delta);
-   if(Math.abs(delta)<24||Math.abs(scrollY-touchStartScroll)<12)return;
+   const gesture=touchGesture;touchGesture=null;
+   if(!gesture||gesture.axis==='horizontal')return;
+   const delta=gesture.y-(event.changedTouches[0]?.clientY??gesture.y);
+   touchDirection=Math.sign(delta);
+   if(gesture.kind==='section'){
+    if(Math.abs(delta)<32||unavailable()||reduced.matches)return;
+    // Run after Lenis's native touchend handler, which cancels touch inertia.
+    touchFrame=requestAnimationFrame(()=>{if(!unavailable()&&!reduced.matches){measure();go(destination(touchDirection,gesture.scroll))}});
+    return;
+   }
+   if(Math.abs(delta)<24||Math.abs(scrollY-gesture.scroll)<12)return;
    touchPending=true;settleTouch();
   }
   const onScroll=()=>{
@@ -104,17 +126,19 @@ export default function usePageScroll(root,blocked){
    touchPending=false;nativeIntent=0;clearTimeout(touchTimer);clearTimeout(nativeTimer);
    if(moving){lenis.scrollTo(scrollY,{immediate:true});moving=false}
   };
+  const touchCancel=()=>{touchGesture=null;touchPending=false;clearTimeout(touchTimer);cancelAnimationFrame(touchFrame)};
   addEventListener('wheel',wheel,{passive:false,capture:true});
   addEventListener('keydown',key);addEventListener('touchstart',touchStart,{passive:true});
-  addEventListener('touchend',touchEnd,{passive:true});addEventListener('touchcancel',onPointer,{passive:true});
+  addEventListener('touchmove',touchMove,{passive:false,capture:true});
+  addEventListener('touchend',touchEnd,{passive:true});addEventListener('touchcancel',touchCancel,{passive:true});
   addEventListener('scroll',onScroll,{passive:true});addEventListener('pointerdown',onPointer,{passive:true});
   addEventListener('resize',queueMeasure);
   const sizing=new ResizeObserver(queueMeasure);sizing.observe(root.current);sizing.observe(header);
   measure();
   return()=>{
-   clearTimeout(gestureTimer);clearTimeout(touchTimer);clearTimeout(nativeTimer);cancelAnimationFrame(measureFrame);sizing.disconnect();
+   clearTimeout(gestureTimer);clearTimeout(touchTimer);clearTimeout(nativeTimer);cancelAnimationFrame(touchFrame);cancelAnimationFrame(measureFrame);sizing.disconnect();
    removeEventListener('wheel',wheel,true);removeEventListener('keydown',key);removeEventListener('touchstart',touchStart);
-   removeEventListener('touchend',touchEnd);removeEventListener('touchcancel',onPointer);removeEventListener('scroll',onScroll);
+   removeEventListener('touchmove',touchMove,true);removeEventListener('touchend',touchEnd);removeEventListener('touchcancel',touchCancel);removeEventListener('scroll',onScroll);
    removeEventListener('pointerdown',onPointer);removeEventListener('resize',queueMeasure);lenis.destroy();instance.current=null;
   };
  },[root]);

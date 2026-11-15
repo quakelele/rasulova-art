@@ -14,6 +14,7 @@
     "test:stories": "node tests/e2e/motion-stories.mjs",
     "test:scroll": "node tests/e2e/page-scroll.mjs",
     "test:archive-scroll": "node tests/e2e/archive-scroll.mjs",
+    "test:mobile-scroll": "node tests/e2e/mobile-sections.mjs",
     "test:hero-exit": "node tests/e2e/hero-exit.mjs"
   },
   "dependencies": {
