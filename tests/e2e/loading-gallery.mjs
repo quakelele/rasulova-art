@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import {chromium} from 'playwright-core';
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 try{
@@ -6,7 +6,7 @@ try{
   const context=await browser.newContext({viewport:mode==='desktop'?{width:1440,height:1000}:{width:390,height:844},reducedMotion:mode==='reduced'?'reduce':'no-preference',isMobile:mode!=='desktop',hasTouch:mode!=='desktop'});
   if(mode==='fallback')await context.addInitScript(()=>{window.createImageBitmap=()=>Promise.reject(new Error('Simulated decoder rejection'))});
   const page=await context.newPage(),errors=[],frames=[];
-  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/sequence/')&&r.url().includes('frame-'))frames.push(r.url())});
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.resourceType()==='fetch'&&r.url().includes('/hero-prob4/')&&r.url().includes('frame-'))frames.push(r.url())});
   await page.goto('http://127.0.0.1:4173');
   await page.locator('#startup-loader').waitFor({state:'detached',timeout:16000});
   if(mode!=='reduced'){

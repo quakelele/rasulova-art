@@ -2,6 +2,7 @@ node_modules/
 dist/
 artifacts/qa/
 artifacts/tools/
+artifacts/media-build/
 *.log
 .env
 .env.local

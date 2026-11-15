@@ -10,6 +10,7 @@ export default function usePageScroll(root,blocked){
  useEffect(()=>{
   const reduced=matchMedia('(prefers-reduced-motion: reduce)'),touchDevice=matchMedia('(pointer:coarse), (max-width:700px)'),header=document.querySelector('.header');
   const nativeWheelEvents=new WeakSet();
+  const directionalPan=CSS.supports('touch-action','pan-x pan-up pinch-zoom');
   const lenis=new Lenis({autoRaf:true,lerp:.11,smoothWheel:true,syncTouch:false,
    virtualScroll:({event})=>!event.defaultPrevented&&!nativeWheelEvents.has(event),
    anchors:false,
@@ -19,8 +20,8 @@ export default function usePageScroll(root,blocked){
   let viewportHeight=innerHeight,viewportWidth=innerWidth,viewportPending=false,viewportTimer=0,landing=null,nativeTransition=null,nativeFinishTimer=0;
   page.style.setProperty('--page-height',`${viewportHeight}px`);
   page.classList.toggle('is-short-viewport',viewportHeight<=740);
-  let sections=[],points=[],heroEnd=0,measureFrame=0,gestureTimer=0,touchTimer=0,touchFrame=0,nativeTimer=0,nativeIntent=0;
-  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,touchPending=false,touchDirection=0,nativeWheelUntil=0;
+  let sections=[],points=[],heroEnd=0,measureFrame=0,gestureTimer=0,touchFrame=0,heroHandoffFrame=0;
+  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,nativeWheelUntil=0,heroHandoff=false,heroArmed=true,heroWheelQuietUntil=0,lastScrollY=scrollY;
   const top=el=>el.getBoundingClientRect().top+window.scrollY;
   function measure(){
    measureFrame=0;lenis.resize();
@@ -29,11 +30,12 @@ export default function usePageScroll(root,blocked){
    sections=[...root.current.querySelectorAll(sectionSelector)].map(el=>{
     const start=top(el)-inset,end=Math.max(start,top(el)+el.offsetHeight-viewportHeight);
     const tall=el.offsetHeight>viewport+3;
-    el.toggleAttribute('data-page-snap',!reduced.matches&&!tall&&!el.matches('.selection-inquiry'));
+    el.toggleAttribute('data-page-snap',!reduced.matches&&(!tall||directionalPan)&&!el.matches('.selection-inquiry'));
+    el.toggleAttribute('data-page-tall',tall);
     return {el,start,end,tall};
    });
    points=[...new Set([heroEnd,...sections.flatMap(s=>s.tall?[s.start,s.end]:[s.start]),lenis.limit].map(y=>Math.round(Math.max(0,Math.min(y,lenis.limit)))))].sort((a,b)=>a-b);
-   syncFormMode();
+   syncGestureMode();
   }
   function queueMeasure(){if(!measureFrame)measureFrame=requestAnimationFrame(measure)}
   function updateViewport(){
@@ -68,9 +70,13 @@ export default function usePageScroll(root,blocked){
   }
   const mobileFormTarget=target=>touchDevice.matches&&target instanceof Element&&Boolean(target.closest('.selection-inquiry'));
   const mobileFormPosition=()=>touchDevice.matches&&sections.some(s=>s.el.matches('.selection-inquiry')&&scrollY>=s.start-3&&scrollY<s.start+s.el.offsetHeight);
-  function syncFormMode(){page.classList.toggle('is-reading-inquiry',mobileFormPosition())}
+  function syncGestureMode(){
+   page.classList.toggle('is-reading-inquiry',mobileFormPosition());
+   page.classList.toggle('is-scrubbing-hero',!reduced.matches&&heroEnd>0&&scrollY<=heroEnd+3);
+   for(const s of sections){if(!s.tall)continue;const edge=scrollY<=s.start+3?'start':scrollY>=s.end-3?'end':'middle';if(s.el.dataset.tallEdge!==edge)s.el.dataset.tallEdge=edge}
+  }
   function releaseFormScroll(){
-   nativeIntent=0;touchPending=false;clearTimeout(nativeTimer);clearTimeout(touchTimer);cancelAnimationFrame(touchFrame);
+   cancelAnimationFrame(touchFrame);
    if(moving||nativeTransition||lenis.isScrolling==='smooth'){
     window.scrollTo({top:scrollY,behavior:'instant'});
     lenis.reset();moving=false;nativeTransition=null;landing=null;clearTimeout(nativeFinishTimer);
@@ -85,6 +91,7 @@ export default function usePageScroll(root,blocked){
   const unavailable=()=>lenis.isStopped||document.querySelector('dialog[open],#startup-loader');
   function completeTransition(){
    moving=false;nativeTransition=null;clearTimeout(nativeFinishTimer);
+   if(heroHandoff){heroHandoff=false;heroWheelQuietUntil=performance.now()+240;page.classList.remove('is-hero-handoff');root.current.querySelector('.hero').dataset.exitState='complete'}
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,0)}else landing=null;
   }
   function finishNative(){if(nativeTransition&&Math.abs(scrollY-nativeTransition.target)<2)completeTransition()}
@@ -101,6 +108,22 @@ export default function usePageScroll(root,blocked){
     nativeFinishTimer=setTimeout(finishNative,180);
    }else lenis.scrollTo(y,{duration:.92,lerp:0,easing:ease,userData:{initiator:'section'},onComplete:completeTransition});
   }
+  function scrubHero(y,immediate){
+   const target=Math.max(0,Math.min(heroEnd,y));
+   if(immediate){window.scrollTo({top:target,behavior:'instant'});lenis.reset()}
+   else lenis.scrollTo(target,{programmatic:false,lerp:.14});
+  }
+  function finishHero(){
+   if(reduced.matches||unavailable()||moving||heroHandoff||!heroArmed||scrollY<heroEnd-4||scrollY>heroEnd+8)return;
+   heroArmed=false;heroHandoff=true;touchGesture=null;
+   page.classList.add('is-hero-handoff');
+   window.scrollTo({top:heroEnd,behavior:'instant'});lenis.reset();
+   const hero=root.current.querySelector('.hero');hero.dataset.exitState='holding';
+   // Present the actual final canvas frame before starting a single transfer.
+   heroHandoffFrame=requestAnimationFrame(()=>{heroHandoffFrame=requestAnimationFrame(()=>{
+    hero.dataset.exitState='moving';go(sections[0]?.start);
+   })});
+  }
   function anchorClick(event){
    if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
    const link=event.target.closest?.('a[href]');if(!link||link.target==='_blank'||link.hasAttribute('download'))return;
@@ -112,14 +135,17 @@ export default function usePageScroll(root,blocked){
   }
   function destination(dir,y=window.scrollY){return dir>0?points.find(p=>p>y+4):points.findLast(p=>p<y-4)}
   function wheel(event){
+   if(!reduced.matches&&(heroHandoff||performance.now()<heroWheelQuietUntil)){
+    event.preventDefault();heroWheelQuietUntil=performance.now()+240;return;
+   }
    if(touchDevice.matches&&(mobileFormTarget(event.target)||mobileFormPosition()||performance.now()<nativeWheelUntil)){
     nativeWheelUntil=performance.now()+240;nativeWheelEvents.add(event);releaseFormScroll();return;
    }
    if(reduced.matches||unavailable()||event.ctrlKey||event.metaKey||protectedTarget(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
    const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1),dir=Math.sign(delta);
    if(!dir)return;
-   if(nativeArea(scrollY,dir)){nativeIntent=dir>0?performance.now():0;return}
-   nativeIntent=0;clearTimeout(nativeTimer);
+   if(scrollY<=heroEnd+3&&heroEnd>0){event.preventDefault();scrubHero(lenis.targetScroll+delta,false);return}
+   if(nativeArea(scrollY,dir))return;
    event.preventDefault();
    if(moving&&!nativeTransition&&lenis.userData?.initiator!=='section')moving=false;
    clearTimeout(gestureTimer);
@@ -130,31 +156,24 @@ export default function usePageScroll(root,blocked){
    consumed=true;go(destination(dir));
   }
   function key(event){
+   if(heroHandoff&&['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key)){event.preventDefault();return}
    if(mobileFormPosition())return;
    if(reduced.matches||unavailable()||protectedTarget(event.target)||event.target.closest?.('button,a,summary')||event.ctrlKey||event.metaKey||event.altKey)return;
-   if(event.key==='Home'||event.key==='End'){event.preventDefault();nativeIntent=0;go(event.key==='Home'?0:lenis.limit);return}
+   if(event.key==='Home'||event.key==='End'){event.preventDefault();go(event.key==='Home'?0:lenis.limit);return}
    const dir=['PageDown','ArrowDown',' '].includes(event.key)?(event.shiftKey?-1:1):['PageUp','ArrowUp'].includes(event.key)?-1:0;
    if(!dir)return;
-   if(nativeArea(scrollY,dir)){nativeIntent=dir>0?performance.now():0;return}
+   if(scrollY<=heroEnd+3&&heroEnd>0){event.preventDefault();scrubHero(scrollY+dir*(event.key.startsWith('Page')||event.key===' '?viewportHeight*.8:80),false);return}
+   if(nativeArea(scrollY,dir))return;
    event.preventDefault();if(!event.repeat)go(destination(dir));
-  }
-  function settleTouch(){
-   clearTimeout(touchTimer);
-   touchTimer=setTimeout(()=>{
-    if(!touchPending)return;touchPending=false;
-    if(reduced.matches||unavailable()||nativeArea(scrollY,touchDirection))return;
-    const nearest=points.reduce((a,b)=>Math.abs(b-scrollY)<Math.abs(a-scrollY)?b:a,points[0]);
-    // Native momentum stays intact; only settle the final composition.
-    if(nearest!==undefined&&Math.abs(nearest-scrollY)<innerHeight*.45)go(nearest);
-   },180);
   }
   function touchStart(event){
    const freeForm=mobileFormTarget(event.target)||mobileFormPosition();
    if(freeForm)releaseFormScroll();
-   touchPending=false;clearTimeout(touchTimer);cancelAnimationFrame(touchFrame);
+   cancelAnimationFrame(touchFrame);
+   if(heroHandoff){touchGesture=null;return}
    const finger=event.touches[0];
    touchGesture=event.touches.length!==1||!finger||reduced.matches||unavailable()||freeForm||protectedTarget(event.target)?null:
-    {x:finger.clientX,y:finger.clientY,scroll:scrollY,axis:null,kind:null,snap:Boolean(event.target.closest?.('[data-page-snap]')),free:Boolean(event.target.closest?.('.selection-inquiry'))};
+    {x:finger.clientX,y:finger.clientY,scroll:scrollY,axis:null,kind:null,snap:Boolean(event.target.closest?.('[data-page-snap]')),free:Boolean(event.target.closest?.('.selection-inquiry')),hero:scrollY<=heroEnd+3&&heroEnd>0};
   }
   function touchMove(event){
    const gesture=touchGesture,finger=event.touches[0];
@@ -164,64 +183,59 @@ export default function usePageScroll(root,blocked){
    if(!gesture.axis){
     if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;
     gesture.axis=Math.abs(dx)>Math.abs(dy)?'horizontal':'vertical';
-    gesture.kind=gesture.axis==='vertical'&&gesture.snap&&!nativeArea(gesture.scroll,Math.sign(dy))?'section':'native';
+    gesture.kind=gesture.axis==='vertical'?(gesture.hero?'hero':gesture.snap&&!nativeArea(gesture.scroll,Math.sign(dy))?'section':'native'):'native';
    }
+   if(gesture.kind==='hero'&&!heroHandoff)scrubHero(gesture.scroll+dy,true);
    // CSS touch-action owns section gestures; this listener never blocks native
    // scrolling. The film, tall content, form, and zoom remain browser controlled.
   }
   function touchEnd(event){
    const gesture=touchGesture;touchGesture=null;
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,180)}
-   if(!gesture||gesture.axis==='horizontal'||gesture.free)return;
+   if(!gesture||heroHandoff||gesture.axis==='horizontal'||gesture.free||gesture.kind==='hero')return;
    const delta=gesture.y-(event.changedTouches[0]?.clientY??gesture.y);
-   touchDirection=Math.sign(delta);
+   const touchDirection=Math.sign(delta);
    if(gesture.kind==='section'){
     if(Math.abs(delta)<32||unavailable()||reduced.matches)return;
     // Run after Lenis's native touchend handler, which cancels touch inertia.
     touchFrame=requestAnimationFrame(()=>{if(!unavailable()&&!reduced.matches){measure();go(destination(touchDirection,gesture.scroll))}});
     return;
    }
-   if(Math.abs(delta)<24||Math.abs(scrollY-gesture.scroll)<12)return;
-   touchPending=true;settleTouch();
+
   }
   const onScroll=()=>{
-   syncFormMode();
+   syncGestureMode();
+   if(scrollY<lastScrollY-1&&scrollY>=heroEnd-4)heroArmed=false;
+   if(scrollY<heroEnd-viewportHeight*.08)heroArmed=true;
+   lastScrollY=scrollY;
    if(nativeTransition){clearTimeout(nativeFinishTimer);nativeFinishTimer=setTimeout(finishNative,160)}
-   if(mobileFormPosition()){nativeIntent=0;touchPending=false;clearTimeout(nativeTimer);clearTimeout(touchTimer);return}
-   if(touchPending)settleTouch();
-   clearTimeout(nativeTimer);
-   if(!nativeIntent||moving||reduced.matches||scrollY<=heroEnd+3||nativeArea(scrollY,1))return;
-   nativeTimer=setTimeout(()=>{
-    if(unavailable()||performance.now()-nativeIntent>3000)return;
-    nativeIntent=0;
-    const nearest=points.filter(p=>p>heroEnd+3).reduce((a,b)=>a===undefined||Math.abs(b-scrollY)<Math.abs(a-scrollY)?b:a,undefined);
-    go(nearest);
-   },180);
   };
   const onPointer=()=>{
-   touchPending=false;nativeIntent=0;clearTimeout(touchTimer);clearTimeout(nativeTimer);
-   if(moving){window.scrollTo({top:scrollY,behavior:'instant'});lenis.scrollTo(scrollY,{immediate:true});moving=false;landing=null;nativeTransition=null;clearTimeout(nativeFinishTimer)}
+   if(heroHandoff)return;
+   if(moving||lenis.isScrolling==='smooth'){window.scrollTo({top:scrollY,behavior:'instant'});lenis.reset();moving=false;landing=null;nativeTransition=null;clearTimeout(nativeFinishTimer)}
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,180)}
   };
-  const touchCancel=()=>{touchGesture=null;touchPending=false;clearTimeout(touchTimer);cancelAnimationFrame(touchFrame);if(viewportPending)resizeViewport()};
+  const touchCancel=()=>{touchGesture=null;cancelAnimationFrame(touchFrame);if(viewportPending)resizeViewport()};
   addEventListener('wheel',wheel,{passive:false,capture:true});
   addEventListener('keydown',key);addEventListener('touchstart',touchStart,{passive:true});
   addEventListener('touchmove',touchMove,{passive:true});
   addEventListener('touchend',touchEnd,{passive:true});addEventListener('touchcancel',touchCancel,{passive:true});
   addEventListener('scroll',onScroll,{passive:true});addEventListener('pointerdown',onPointer,{passive:true});
   addEventListener('scrollend',finishNative);addEventListener('click',anchorClick);
+  addEventListener('hero-finished',finishHero);
   addEventListener('resize',resizeViewport);
   reduced.addEventListener('change',queueMeasure);
   const sizing=new ResizeObserver(queueMeasure);sizing.observe(root.current);sizing.observe(header);
   measure();
   return()=>{
-   clearTimeout(gestureTimer);clearTimeout(touchTimer);clearTimeout(nativeTimer);clearTimeout(nativeFinishTimer);clearTimeout(viewportTimer);cancelAnimationFrame(touchFrame);cancelAnimationFrame(measureFrame);sizing.disconnect();
+   clearTimeout(gestureTimer);cancelAnimationFrame(heroHandoffFrame);clearTimeout(nativeFinishTimer);clearTimeout(viewportTimer);cancelAnimationFrame(touchFrame);cancelAnimationFrame(measureFrame);sizing.disconnect();
    removeEventListener('wheel',wheel,true);removeEventListener('keydown',key);removeEventListener('touchstart',touchStart);
    removeEventListener('touchmove',touchMove);removeEventListener('touchend',touchEnd);removeEventListener('touchcancel',touchCancel);removeEventListener('scroll',onScroll);
    removeEventListener('pointerdown',onPointer);removeEventListener('resize',resizeViewport);lenis.destroy();instance.current=null;refreshViewport.current=null;
    removeEventListener('scrollend',finishNative);removeEventListener('click',anchorClick);
-   page.style.removeProperty('--page-height');page.classList.remove('is-short-viewport','is-reading-inquiry');
-   reduced.removeEventListener('change',queueMeasure);sections.forEach(s=>s.el.removeAttribute('data-page-snap'));
+   removeEventListener('hero-finished',finishHero);
+   page.style.removeProperty('--page-height');page.classList.remove('is-short-viewport','is-reading-inquiry','is-scrubbing-hero','is-hero-handoff');
+   reduced.removeEventListener('change',queueMeasure);sections.forEach(s=>{s.el.removeAttribute('data-page-snap');s.el.removeAttribute('data-page-tall');s.el.removeAttribute('data-tall-edge')});
   };
  },[root]);
  useEffect(()=>{const lenis=instance.current;if(!lenis)return;if(blocked)lenis.stop();else{lenis.start();refreshViewport.current?.();lenis.resize()}},[blocked]);

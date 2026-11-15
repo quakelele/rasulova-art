@@ -1,0 +1,15 @@
+{
+  "count": 92,
+  "fps": "24/1",
+  "duration": 3.833333,
+  "source": "mainAnimation_prob4.mp4",
+  "sourceSha256": "3b6ad9c8f00756901b559011fd9c337a8ba018efdd405841be42dd8dca3f7490",
+  "width": 1920,
+  "height": 1080,
+  "encoding": "webp-lossless",
+  "frameDirectory": "frames",
+  "poster": "frames/frame-000.webp",
+  "direction": "forward",
+  "resized": false,
+  "frameRateChanged": false
+}

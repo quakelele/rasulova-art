@@ -11,8 +11,9 @@ palette, navigation, selection, and sole active hero animation.
   the compositor; Lenis follows native position and dimensions. The old
   ScrollCraft mount and separate hero exit controller are no longer run.
 - The hero remains an interactive frame sequence. Its last frame completes at
-  the end of the pin; the next gesture advances to the statement. Upward input
-  can return to and scrub back through the hero.
+  the end of the pin and triggers one smooth transfer to the statement. Input
+  is clamped to the film while scrubbing, and the remainder of its gesture cannot
+  cascade through later chapters. Upward input can return and scrub backward.
 - Mouse wheel and trackpad gestures advance to the adjacent section. A gesture
   tail is debounced, and reverse input can interrupt the transfer. Keyboard
   navigation, Home, End, and pointer interruption are handled separately.
@@ -22,8 +23,9 @@ palette, navigation, selection, and sole active hero animation.
 - A vertical touch gesture outside the film and tall content advances exactly
   one section. Gesture direction is locked after 8 px of travel;
   a deliberate swipe of at least 32 px commits on release, without browser fling
-  momentum skipping screens. Horizontal gestures remain with Swiper; the film,
-  tall sections, nested panels, and multi-touch gestures remain native.
+  momentum skipping screens. Horizontal gestures remain with Swiper. The film
+  uses bounded passive touch scrubbing, while tall content, desktop nested
+  panels, the mobile form, and multi-touch gestures remain native.
 - The selection desk can scroll internally on desktop. On mobile it has natural
   height and uses the page's native vertical scrolling, including gestures from
   the card, buttons, and textarea. No nested panel conceals the bottom actions.
