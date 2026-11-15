@@ -6,8 +6,10 @@ palette, navigation, selection, and sole active hero animation.
 
 ## Implementation
 
-- Lenis 1.3.27 owns smooth scrolling, anchor movement, and section transitions.
-  The old ScrollCraft mount and separate hero exit controller are no longer run.
+- Lenis 1.3.27 owns desktop smooth scrolling and modal locking. Mobile section
+  and anchor transitions use browser-native smooth scrolling so they can run on
+  the compositor; Lenis follows native position and dimensions. The old
+  ScrollCraft mount and separate hero exit controller are no longer run.
 - The hero remains an interactive frame sequence. Its last frame completes at
   the end of the pin; the next gesture advances to the statement. Upward input
   can return to and scrub back through the hero.
@@ -18,11 +20,13 @@ palette, navigation, selection, and sole active hero animation.
   images flex to the available space; duplicate gallery thumbnails are removed.
   The category navigation belongs inside the collection's screen.
 - A vertical touch gesture outside the film and tall content advances exactly
-  one section through Lenis. Gesture direction is locked after 8 px of travel;
+  one section. Gesture direction is locked after 8 px of travel;
   a deliberate swipe of at least 32 px commits on release, without browser fling
   momentum skipping screens. Horizontal gestures remain with Swiper; the film,
   tall sections, nested panels, and multi-touch gestures remain native.
-- The selection desk can scroll internally, including on compact phones.
+- The selection desk can scroll internally on desktop. On mobile it has natural
+  height and uses the page's native vertical scrolling, including gestures from
+  the card, buttons, and textarea. No nested panel conceals the bottom actions.
   The contact screen includes the footer where available height permits.
 - Dialogs stop Lenis and retain their own native scrolling. Reduced motion
   uses native wheel behavior and instant programmatic positioning.
@@ -60,3 +64,26 @@ and blanket layer promotion for offscreen AOS elements was removed.
 
 The reproduction now reports zero landing error and zero redundant canvas
 resets. `npm run test:mobile-layout` retains this regression check.
+
+## Mobile UX and rendering follow-up
+
+The mobile selection panel's internal scrolling was removed after real-user
+feedback. `npm run test:inquiry-mobile` checks dragging from inside the form,
+reaching WhatsApp/copy actions, and continuing to contacts on two phone sizes.
+
+Section gesture ownership now uses CSS `touch-action` and a passive touchmove
+listener instead of a blocking document-level listener. Coarse-pointer/narrow
+layouts no longer run overlapping AOS entrances. The hero's drawing pauses when
+its actual window is outside the visible area below the header.
+
+The mobile native smooth-scroll path preserves adjacent-section gestures,
+reverse navigation, anchors, pointer interruption, and viewport corrections.
+Chrome emulation with 4x CPU throttling recorded a 175 ms maximum JS frame
+interval in the archive before these changes and no interval above 34 ms there
+afterwards. One first-entry raster/paint stall remained in the atelier sample.
+These measurements are not real-device FPS or proof of Samsung browser behavior.
+
+`/device-diag.html` provides a minimal native-scroll baseline. `/?scrollDebug=1`
+loads an opt-in JS frame-cadence/long-task overlay on the actual page. The overlay
+is a separate chunk and is not requested on normal visits. It explicitly labels
+JS cadence as distinct from compositor/screen FPS. No deployment was performed.

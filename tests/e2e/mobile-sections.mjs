@@ -42,7 +42,7 @@ try{
    await page.locator('#inquiry').evaluate(e=>scrollTo({top:e.getBoundingClientRect().top+scrollY-document.querySelector('.header').offsetHeight,behavior:'instant'}));await page.waitForTimeout(900);
    const panel=page.locator('.inquiry-desk'),rect=await panel.boundingBox(),pageBefore=await page.evaluate(()=>scrollY);
    await swipe(rect.x+rect.width/2,rect.y+rect.height-35,rect.x+rect.width/2,rect.y+45,12);
-   assert.ok(await panel.evaluate(e=>e.scrollTop)>40,'Nested selection panel still scrolls');assert.ok(Math.abs(await page.evaluate(()=>scrollY)-pageBefore)<2);
+   assert.equal(await panel.evaluate(e=>e.scrollTop),0,'Selection panel has no nested scroll');assert.ok(await page.evaluate(()=>scrollY)>pageBefore+40,'Dragging the panel scrolls the entire page');
   }
   assert.deepEqual(errors,[]);assert.deepEqual(bad,[]);console.log({name,checked,longSwipe:true,shortSwipe:true,horizontal:true,reverse:true,errors,bad});await context.close();
  }

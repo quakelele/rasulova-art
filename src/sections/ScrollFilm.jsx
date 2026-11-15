@@ -55,7 +55,7 @@ export default function ScrollFilm(){
    if(changed&&count&&visible){cancelAnimationFrame(raf);raf=0;paint()}else schedule();
   }
   const unsubscribe=progress.on('change',schedule);
-  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){update();schedule()}},{rootMargin:'150px'});observer.observe(host);
+  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){update();schedule()}else{cancelAnimationFrame(raf);raf=0}},{rootMargin:`-${document.querySelector('.header').offsetHeight}px 0px 0px`});observer.observe(frameWindow);
   const onVisibility=()=>{if(!document.hidden){update();schedule()}};
   addEventListener('scroll',update,{passive:true});addEventListener('resize',resize);addEventListener('page-viewport-change',resize);document.addEventListener('visibilitychange',onVisibility);
   fetch('/media/sequence/manifest.json',{signal:abort.signal}).then(r=>r.json()).then(manifest=>{if(dead)return;count=manifest.count;queue=[];resize();progress.jump(clamp((scrollY-top)/travel));prioritize(Math.floor((1-clamp(progress.get()))*(count-1)))}).catch(()=>{});

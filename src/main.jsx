@@ -9,3 +9,4 @@ import 'aos/dist/aos.css';
 import 'lenis/dist/lenis.css';
 import './styles/index.css';
 createRoot(document.getElementById('root')).render(<LocaleProvider><App/></LocaleProvider>);
+if(new URLSearchParams(location.search).has('scrollDebug'))import('./lib/scroll-diagnostics').then(module=>module.mountScrollDiagnostics());

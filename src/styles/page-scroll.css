@@ -112,11 +112,11 @@ html{scroll-behavior:auto;scroll-padding-top:var(--film-header)}
  .atelier-intro p{font-size:10px;line-height:1.7;max-width:330px}
  .atelier-archive-note{font-size:9px;line-height:1.7}
  .atelier-archive-note>a{margin-left:0;display:flex;width:fit-content;margin-top:7px}
- .selection-inquiry{height:var(--chapter-height);min-height:0;padding-block:24px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:20px}
+ .selection-inquiry{height:auto;min-height:var(--chapter-height);padding-block:24px;display:block}
  .inquiry-heading h2{font-size:42px;margin:14px 0}
  .inquiry-heading>p{font-size:10px;line-height:1.7}
  .inquiry-heading .author-contact{display:none}
- .inquiry-desk{height:100%;min-height:0;max-height:none;overflow-y:auto;margin-top:0;padding:18px 16px}
+ .inquiry-desk{height:auto;min-height:0;max-height:none;overflow:visible;overscroll-behavior:auto;margin-top:24px;padding:18px 16px}
  .inquiry-desk-title h3{font-size:27px}
  .inquiry-desk-title{padding-bottom:14px}
  .selection-empty{padding:18px 0;gap:10px}
@@ -145,3 +145,8 @@ html.is-short-viewport .atelier-slider{height:auto}
 html.is-short-viewport .atelier-open{flex:none}
 html.is-short-viewport .atelier-slider img{height:clamp(210px,36svh,300px)}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero.film{height:var(--page-height,100dvh)!important}.film-stage{height:100%}}
+
+/* Let the compositor resolve gesture ownership without a blocking document
+   touchmove listener. Oversized sections and forms keep native vertical pan. */
+[data-page-snap]{touch-action:pan-x pinch-zoom}
+@media(pointer:coarse),(max-width:700px){[data-aos]{opacity:1!important;transform:none!important;transition:none!important}}
