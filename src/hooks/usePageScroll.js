@@ -225,11 +225,17 @@ export default function usePageScroll(root,blocked){
    if(!gesture.axis){
     if(Math.max(Math.abs(dx),Math.abs(dy))<(gesture.kind==='bounded'?2:8))return;
     gesture.axis=Math.abs(dx)>Math.abs(dy)?'horizontal':'vertical';
+    if(gesture.kind==='bounded'&&gesture.axis==='vertical'){
+     const inquiry=sections.find(s=>s.el.matches('.selection-inquiry'));
+     const readingInquiry=inquiry&&gesture.scroll>=inquiry.start-3&&gesture.scroll<inquiry.start+inquiry.el.offsetHeight;
+     gesture.chapter=!readingInquiry&&!nativeArea(gesture.scroll,Math.sign(dy));
+    }
     if(gesture.kind!=='bounded')gesture.kind=gesture.axis==='vertical'?(gesture.hero?'hero':gesture.snap&&!nativeArea(gesture.scroll,Math.sign(dy))?'section':'native'):'native';
    }
    if(gesture.axis==='vertical'&&gesture.kind==='bounded'){
     if(event.cancelable)event.preventDefault();
-    const delta=Math.max(-viewportHeight*.95,Math.min(viewportHeight*.95,dy));
+    const range=viewportHeight*(gesture.chapter ? .22 : .95);
+    const delta=Math.max(-range,Math.min(range,dy*(gesture.chapter ? .3 : 1)));
     gesture.target=Math.max(heroEnd,Math.min(lenis.limit,gesture.scroll+delta));
     if(!touchFrame)touchFrame=requestAnimationFrame(()=>{touchFrame=0;if(touchGesture===gesture){window.scrollTo({top:gesture.target,behavior:'instant'});lenis.reset()}});
    }
@@ -249,6 +255,13 @@ export default function usePageScroll(root,blocked){
    if(!gesture||heroHandoff||gesture.axis==='horizontal'||gesture.free||gesture.kind==='hero')return;
    const delta=gesture.y-(event.changedTouches[0]?.clientY??gesture.y);
    const touchDirection=Math.sign(delta);
+   if(gesture.kind==='bounded'&&gesture.chapter){
+    if(unavailable()||reduced.matches)return;
+    // Resolve once from the gesture origin, never from an intermediate chapter.
+    const target=Math.abs(delta)>=32?destination(touchDirection,gesture.scroll):gesture.scroll;
+    touchFrame=requestAnimationFrame(()=>{touchFrame=0;if(!unavailable())go(target)});
+    return;
+   }
    if(gesture.kind==='section'){
     if(Math.abs(delta)<32||unavailable()||reduced.matches)return;
     // Run after Lenis's native touchend handler, which cancels touch inertia.

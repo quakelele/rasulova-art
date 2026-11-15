@@ -8,7 +8,7 @@ try{
  await context.addInitScript(()=>{Element.prototype.requestPointerLock=()=>Promise.reject(new Error('Disabled'));Element.prototype.setPointerCapture=()=>{};Element.prototype.releasePointerCapture=()=>{};window.__scrollCalls=[];const original=window.scrollTo.bind(window);window.scrollTo=(...args)=>{window.__scrollCalls.push(args);return original(...args)}});
  const page=await context.newPage();await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});await page.locator('#startup-loader').waitFor({state:'detached'});
  const cdp=await context.newCDPSession(page);
- for(const section of ['#inquiry','.collection-selection']){
+ for(const section of ['#inquiry']){
  async function align(){await page.locator(section).evaluate(e=>scrollTo({top:e.getBoundingClientRect().top+scrollY-document.querySelector('.header').offsetHeight,behavior:'instant'}));await page.waitForTimeout(500);await page.evaluate(()=>window.__scrollCalls=[])}
  for(const dir of [1,-1]){
   await align();const start=await page.evaluate(()=>scrollY);await page.mouse.move(width/2,350);

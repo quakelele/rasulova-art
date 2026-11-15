@@ -45,7 +45,7 @@ try{
    assert.ok(pin<height*1.2,'Short mobile scrub distance');
    assert.equal(await page.locator('.hero').getAttribute('data-renderer'),'frames');
    const before=await page.evaluate(()=>scrollY);await swipe(height-120,height-240);await page.waitForTimeout(1200);
-   const after=await page.evaluate(()=>scrollY);assert.ok(after>before&&after<before+height,'Fresh swipe scrolls locally');
+   const after=await page.evaluate(()=>scrollY);assert.ok(after>before,'Fresh swipe advances');assert.ok(Math.abs(await page.locator('.catalog-category').first().evaluate(e=>e.getBoundingClientRect().top-document.querySelector('.header').offsetHeight))<2,'One mobile swipe advances one chapter');
    await align(pin-200);await swipe(190,350);await page.waitForTimeout(700);
    assert.ok(await page.evaluate(()=>scrollY)<pin-280,'Can scrub backward');
    // Revisit exactly the displayed final frame; no fresh decoder callback is

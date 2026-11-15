@@ -165,3 +165,12 @@ coalesced to one rAF update, follow finger distance (max 0.95 viewport), and sto
 on release. No inertia simulation or section cascade is added. Native field
 interaction and horizontal carousels are excluded. The hero uses the same fully
 preloaded lossless frame renderer on mobile and desktop; no MP4 is shipped.
+
+
+Mobile chapter refinement: fitting sections now resolve one swipe to one smooth
+next/previous chapter after finger release. During dragging a restrained preview
+follows the finger; gestures under 32px settle back. Targets are resolved from
+the gesture origin, preventing multi-section cascades. Tall content follows the
+finger until its edge, and the inquiry stays readable without chapter snapping.
+Horizontal gallery and native field handling remain excluded. This supersedes
+stop-with-finger behavior for fitting chapters only.

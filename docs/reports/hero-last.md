@@ -31,6 +31,7 @@ uncompressed surfaces. Canvas stays 1920x1080. Playback advances through adjacen
 cached frames with interpolation and bounded catch-up speed; no MP4 seeking or
 network fetches occur while scrubbing after the loader.
 
-Mobile vertical dragging now follows the finger with no fling inertia and at
-most 0.95 viewport travel per gesture. Horizontal Swiper gestures, pinch zoom,
+Mobile fitting chapters settle one deliberate swipe to one smooth next/previous
+section, with no inertial cascade. Tall content and inquiry follow the finger
+with at most 0.95 viewport travel per gesture. Horizontal Swiper gestures, pinch zoom,
 focused form fields, and overflowing textareas retain their own controls.
