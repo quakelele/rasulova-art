@@ -43,14 +43,14 @@ try{
   // Mobile content now keeps native scrolling; desktop retains chapter snapping.
   if(mobile){
    assert.ok(pin<height*1.2,'Short mobile scrub distance');
-   assert.equal(await page.locator('.hero').getAttribute('data-renderer'),'video');
+   assert.equal(await page.locator('.hero').getAttribute('data-renderer'),'frames');
    const before=await page.evaluate(()=>scrollY);await swipe(height-120,height-240);await page.waitForTimeout(1200);
    const after=await page.evaluate(()=>scrollY);assert.ok(after>before&&after<before+height,'Fresh swipe scrolls locally');
    await align(pin-200);await swipe(190,350);await page.waitForTimeout(700);
    assert.ok(await page.evaluate(()=>scrollY)<pin-280,'Can scrub backward');
    // Revisit exactly the displayed final frame; no fresh decoder callback is
    // required to leave it on the next deliberate gesture.
-   await align(expected);await align(pin);await swipe(height-140,height-260);await page.waitForTimeout(1900);
+   await align(expected);await align(pin);await swipe(height-140,height-260);await page.waitForFunction(y=>Math.abs(scrollY-y)<2,expected,{timeout:10000});
    assert.ok(Math.abs(await page.evaluate(()=>scrollY)-expected)<2,'Can exit an already displayed final frame');
    await align(pin);await swipe(190,350);await page.waitForTimeout(700);
    assert.ok(await page.evaluate(()=>scrollY)<pin-100,'Reverse gesture leaves the final frame');

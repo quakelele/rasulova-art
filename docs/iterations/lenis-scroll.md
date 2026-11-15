@@ -151,3 +151,17 @@ The current hero source is now lastVideo.mp4 (full 123-frame timeline at
 sections also shrink to 72% when leaving. Their offsets use untransformed layout
 coordinates to avoid drift on resize or anchor navigation. Mobile input ownership
 is unchanged; these are visual effects only. See docs/reports/hero-last.md.
+
+
+Centered 72% exit scaling now applies to every standard chapter in
+sectionSelector, including all collection categories, archive, selection shelf,
+atelier, inquiry, and contacts. Reduced motion still disables it. Stable layout
+coordinates and native mobile gestures are retained. chapter-cards now checks
+every chapter rather than the original two.
+
+
+Current mobile policy supersedes native fling: vertical document drags are
+coalesced to one rAF update, follow finger distance (max 0.95 viewport), and stop
+on release. No inertia simulation or section cascade is added. Native field
+interaction and horizontal carousels are excluded. The hero uses the same fully
+preloaded lossless frame renderer on mobile and desktop; no MP4 is shipped.

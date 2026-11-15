@@ -160,7 +160,7 @@ html.is-reading-inquiry [data-page-snap],html.is-reading-inquiry [data-page-snap
 
 @media(pointer:coarse),(max-width:700px){.hero.film{height:calc(var(--page-height,100dvh)*1.55)}}
 
-/* The next two chapters repeat the centered card exit without owning gestures. */
+/* All chapters repeat the centered card exit without owning gestures. */
 [data-card-exit]{scale:calc(1 - var(--chapter-exit,0)*.28);transform-origin:50% 50%;border-radius:calc(var(--chapter-exit,0)*28px)}
 [data-card-exit].has-card-exit{will-change:scale,border-radius}
 @media(prefers-reduced-motion:reduce){[data-card-exit]{scale:none;border-radius:0;will-change:auto}}

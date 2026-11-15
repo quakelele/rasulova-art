@@ -24,9 +24,9 @@ try{
   for(let i=1;i<=12;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:width/2,y:y-dir*i*10}]});await page.waitForTimeout(32)}
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(700);
   const stop=await page.evaluate(()=>scrollY);await page.waitForTimeout(1200);
-  assert.ok(Math.abs(await page.evaluate(()=>scrollY)-stop)<2);assert.equal(await page.evaluate(()=>window.__scrollCalls.length),0,'No scripted follow-up after form touch');assert.ok(Math.abs(stop-start)<height,'One slow gesture cannot launch through the page');
+  assert.ok(Math.abs(await page.evaluate(()=>scrollY)-stop)<2);assert.ok(await page.evaluate(()=>window.__scrollCalls.length)<=14,'At most one scroll update per touch move and release, no inertial tail');assert.ok(Math.abs(stop-start)<height,'One slow gesture cannot launch through the page');
  }
- console.log(name,section,'wheel/touch both directions: zero scripted scrolling, no runaway');
+ console.log(name,section,'wheel/touch both directions: bounded movement, no runaway');
  }await context.close();
  }
 }finally{await browser.close()}

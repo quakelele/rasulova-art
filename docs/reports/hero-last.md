@@ -1,8 +1,8 @@
 # lastVideo.mp4 hero replacement
 
 The main hero uses the full new source video: 123 original frames at
-30000/1001 fps, 1920x1080, 4.1041 seconds. The original MP4 is delivered unchanged
-on phones (4,968,133 bytes); desktop uses lossless WebP frames. There is no
+30000/1001 fps, 1920x1080, 4.1041 seconds. Both phones and desktop use lossless WebP frames. The original MP4 remains
+in the workspace and is no longer delivered by the application. There is no
 resolution or frame-rate reduction and no additional lossy video encoding.
 The previous source remains in the workspace.
 
@@ -20,3 +20,17 @@ motion disables scaling.
 
 All 123 decoded BGRA frame hashes match the source. Frame files total
 27,048,094 bytes. Previous WebP assets were archived outside public/dist.
+
+
+Full preload revision: all 123 images are fetched with six workers, retried up to
+three attempts, and decode-validated before hero-ready. The loader shows progress
+and has no timeout that reveals a partial sequence. A failed image leaves an
+explicit retry action. Compressed bytes remain in memory, with a bounded decoded
+ring of 12 frames on mobile / 20 on desktop, instead of retaining about 1 GB of
+uncompressed surfaces. Canvas stays 1920x1080. Playback advances through adjacent
+cached frames with interpolation and bounded catch-up speed; no MP4 seeking or
+network fetches occur while scrubbing after the loader.
+
+Mobile vertical dragging now follows the finger with no fling inertia and at
+most 0.95 viewport travel per gesture. Horizontal Swiper gestures, pinch zoom,
+focused form fields, and overflowing textareas retain their own controls.
