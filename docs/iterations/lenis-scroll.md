@@ -107,3 +107,47 @@ including a larger phone where the form can fit. It checks zero scripted scroll
 calls after ordinary form input, no wheel delta amplification, and a stable
 position after input ends. The form continues to use document scrolling with
 reachable WhatsApp/copy actions, rather than a nested scroll panel.
+
+
+## Current mobile architecture (2026-11-15)
+
+All sections outside the hero now use native document scrolling. Mobile does not
+receive data-page-snap attributes, wheel interception, touch-end chapter jumps,
+or Lenis virtual-scroll processing. This supersedes the earlier form-only
+exceptions and mobile chapter snapping. Desktop chapter transitions are retained.
+The hero alone maps vertical dragging to bounded scroll progress and makes one
+transfer to the statement after its final decoded frame. Mobile travel is 0.9
+viewports; desktop travel is 1.8. Original MP4 decoding replaces lossless WebP canvas on
+mobile; no additional video compression was applied.
+
+Validated production build, hero-exit (desktop, mobile, Android-sized 4x CPU),
+inquiry-runaway (both screenshots' sections, both gesture directions on two phone
+sizes), and inquiry-mobile (actions reachable, no nested scroll). These are local
+Chrome checks, not physical Samsung validation. Earlier mobile chapter-snap tests
+describe the superseded behavior.
+
+
+Hero endpoint follow-up: a native smooth handoff waits for touchend/touchcancel
+instead of starting underneath an active finger. A 1600 ms ownership watchdog
+releases interrupted transitions. A fresh downward gesture can leave an already
+presented final frame without waiting for a new decoder event. Mobile seeked
+also reports completion when requestVideoFrameCallback is delayed. The hero-exit
+regression covers repeated endpoint visits, reverse scrubbing, and interrupted
+transfers. Captions alternate intro-left / right / left / right; phone captions
+retain their separate region below the picture with matching text alignment.
+
+
+The reference full-vase composition is now the shared endpoint (frame 55,
+about 2.31 seconds of source video). Later close-up frames are not played or
+requested by the desktop sequence renderer. Mobile seeks only through that
+endpoint; the source asset is unchanged. Hero travel is 1.1 desktop viewports /
+0.55 mobile viewports. Exit scales the whole card to 72% around its center with
+smoothstep easing, drawing all four edges inward. hero-centered-exit verifies
+centered scaling at 15%, 50%, and 85% of the transition on desktop and mobile.
+
+
+The current hero source is now lastVideo.mp4 (full 123-frame timeline at
+30000/1001 fps), superseding the prob4/frame-55 endpoint above. The next two
+sections also shrink to 72% when leaving. Their offsets use untransformed layout
+coordinates to avoid drift on resize or anchor navigation. Mobile input ownership
+is unchanged; these are visual effects only. See docs/reports/hero-last.md.

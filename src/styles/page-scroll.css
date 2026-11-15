@@ -1,7 +1,7 @@
 /* Screen compositions share the space below the fixed navigation. */
 :root{--chapter-height:calc(var(--page-height,100dvh) - var(--film-header));--chapter-pad:clamp(24px,4svh,48px)}
 html{scroll-behavior:auto;scroll-padding-top:var(--film-header)}
-.hero.film{height:calc(var(--page-height,100dvh)*3.2)}
+.hero.film{height:calc(var(--page-height,100dvh)*2.1)}
 .film-stage{height:var(--page-height,100dvh)}
 .statement,.catalog-category,.collection-archive,.collection-selection,.atelier,.selection-inquiry,.contacts-section{scroll-margin-top:0}
 .statement{min-height:var(--chapter-height);display:flex;flex-direction:column;justify-content:center;padding-block:var(--chapter-pad)}
@@ -157,3 +157,10 @@ html.is-short-viewport .atelier-slider img{height:clamp(210px,36svh,300px)}
 html.is-scrubbing-hero,html.is-hero-handoff{touch-action:pan-x pinch-zoom}
 html.is-reading-inquiry [data-page-snap],html.is-reading-inquiry [data-page-snap][data-page-tall]{touch-action:pan-y pinch-zoom}
 @media(pointer:coarse),(max-width:700px){[data-aos]{opacity:1!important;transform:none!important;transition:none!important}}
+
+@media(pointer:coarse),(max-width:700px){.hero.film{height:calc(var(--page-height,100dvh)*1.55)}}
+
+/* The next two chapters repeat the centered card exit without owning gestures. */
+[data-card-exit]{scale:calc(1 - var(--chapter-exit,0)*.28);transform-origin:50% 50%;border-radius:calc(var(--chapter-exit,0)*28px)}
+[data-card-exit].has-card-exit{will-change:scale,border-radius}
+@media(prefers-reduced-motion:reduce){[data-card-exit]{scale:none;border-radius:0;will-change:auto}}

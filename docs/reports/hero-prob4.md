@@ -6,10 +6,11 @@ The retired sequence and poster are outside `public` and are absent from `dist`.
 ## Media
 
 - Original: H.264, 1920 × 1080, 24 fps, 92 frames, 3.833333 seconds of video.
-- Delivery: RGB lossless WebP, 92 frames in one shared directory for all devices.
+- Desktop delivery: RGB lossless WebP, 92 frames. Mobile: original H.264 MP4,
+  hardware-decoded and seeked to scroll position, with coalesced seek requests.
 - No resizing, frame-rate reduction, interpolation, or lossy quantization.
-- Frame files total 74,064,424 bytes. The source MP4 itself is not copied into
-  the public directory or production output.
+- Desktop frame files total 74,064,424 bytes. Mobile uses the original 8,532,719-byte
+  MP4 copied unchanged into production assets; it does not fetch the sequence.
 - All 92 decoded BGRA frame hashes match the original video after decoding.
   Evidence: `artifacts/qa/hero-replacement/lossless-verification.json`.
 
@@ -31,6 +32,13 @@ actually removed. The film is bounded to its own scroll interval. Drawing the
 actual last frame triggers a single smooth handoff to the statement, while the
 rest of that touch/wheel gesture cannot cascade through subsequent sections.
 Returning upward to the final frame does not retrigger the handoff.
+
+During that handoff the whole hero window progressively scales into a centered
+card, opening side margins and rounding its corners. Video and type keep their
+aspect ratio and move upward with the document. The effect uses the actual exit
+scroll progress, so it reverses when scrolling back. It does not alter document
+heights or add a second scrolling animation. Reduced motion disables the scale
+and rounded clip animation. Visual samples: `artifacts/qa/hero-card/`.
 
 The source begins with white frames. They are retained rather than trimming or
 altering the clip. Reduced-motion users see a clear still from the final frame.

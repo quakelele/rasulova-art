@@ -8,10 +8,10 @@ import {promisify} from 'node:util';
 const run=promisify(execFile),root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const ffmpeg=process.argv[2];
 if(!ffmpeg)throw new Error('Pass the FFmpeg executable path.');
-const source=path.join(root,'mainAnimation_prob4.mp4'),target=path.join(root,'public/media/hero-prob4');
-const stage=process.argv[3]?path.resolve(process.argv[3]):path.join(root,'artifacts/media-build',`hero-prob4-${Date.now()}`);
+const source=path.resolve(root,process.argv[4]||'lastVideo.mp4'),target=path.resolve(root,process.argv[5]||'public/media/hero-last');
+const stage=process.argv[3]?path.resolve(process.argv[3]):path.join(root,'artifacts/media-build',`hero-last-${Date.now()}`);
 function inside(parent,child){const rel=path.relative(parent,child);if(rel==='..'||rel.startsWith('..'+path.sep)||path.isAbsolute(rel))throw Error('Media path outside the project')}
-inside(root,target);inside(path.join(root,'artifacts/media-build'),stage);
+inside(root,source);inside(root,target);inside(path.join(root,'artifacts/media-build'),stage);
 if(fs.existsSync(target))throw Error('Target already exists. Remove it explicitly before rebuilding.');
 const framesPath=path.join(stage,'frames');fs.mkdirSync(framesPath,{recursive:true});
 const probe=path.join(path.dirname(ffmpeg),'ffprobe.exe'),options={windowsHide:true,maxBuffer:4*1024*1024};

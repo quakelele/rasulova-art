@@ -8,7 +8,8 @@ try{
  await context.addInitScript(()=>{Element.prototype.requestPointerLock=()=>Promise.reject(new Error('Disabled'));Element.prototype.setPointerCapture=()=>{};Element.prototype.releasePointerCapture=()=>{};window.__scrollCalls=[];const original=window.scrollTo.bind(window);window.scrollTo=(...args)=>{window.__scrollCalls.push(args);return original(...args)}});
  const page=await context.newPage();await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});await page.locator('#startup-loader').waitFor({state:'detached'});
  const cdp=await context.newCDPSession(page);
- async function align(){await page.locator('#inquiry').evaluate(e=>scrollTo({top:e.getBoundingClientRect().top+scrollY-document.querySelector('.header').offsetHeight,behavior:'instant'}));await page.waitForTimeout(500);await page.evaluate(()=>window.__scrollCalls=[])}
+ for(const section of ['#inquiry','.collection-selection']){
+ async function align(){await page.locator(section).evaluate(e=>scrollTo({top:e.getBoundingClientRect().top+scrollY-document.querySelector('.header').offsetHeight,behavior:'instant'}));await page.waitForTimeout(500);await page.evaluate(()=>window.__scrollCalls=[])}
  for(const dir of [1,-1]){
   await align();const start=await page.evaluate(()=>scrollY);await page.mouse.move(width/2,350);
   for(let i=0;i<8;i++){await page.mouse.wheel(0,dir*45);await page.waitForTimeout(40)}
@@ -25,6 +26,7 @@ try{
   const stop=await page.evaluate(()=>scrollY);await page.waitForTimeout(1200);
   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-stop)<2);assert.equal(await page.evaluate(()=>window.__scrollCalls.length),0,'No scripted follow-up after form touch');assert.ok(Math.abs(stop-start)<height,'One slow gesture cannot launch through the page');
  }
- console.log(name,'wheel/touch both directions: zero scripted scrolling, no runaway');await context.close();
+ console.log(name,section,'wheel/touch both directions: zero scripted scrolling, no runaway');
+ }await context.close();
  }
 }finally{await browser.close()}

@@ -4,25 +4,27 @@ import Lenis from 'lenis';
 const sectionSelector='.statement,.catalog-category,.collection-archive,.collection-selection,.atelier,.selection-inquiry,.contacts-section';
 const ease=t=>1-Math.pow(1-t,4);
 
-// One scroll owner: Lenis drives both the film and the section transitions.
+// Desktop chapters use Lenis. Mobile content stays native outside the hero.
 export default function usePageScroll(root,blocked){
  const instance=useRef(null),refreshViewport=useRef(null);
  useEffect(()=>{
   const reduced=matchMedia('(prefers-reduced-motion: reduce)'),touchDevice=matchMedia('(pointer:coarse), (max-width:700px)'),header=document.querySelector('.header');
-  const nativeWheelEvents=new WeakSet();
   const directionalPan=CSS.supports('touch-action','pan-x pan-up pinch-zoom');
   const lenis=new Lenis({autoRaf:true,lerp:.11,smoothWheel:true,syncTouch:false,
-   virtualScroll:({event})=>!event.defaultPrevented&&!nativeWheelEvents.has(event),
+   virtualScroll:({event})=>!touchDevice.matches&&!event.defaultPrevented,
    anchors:false,
    stopInertiaOnNavigate:true,prevent:node=>node.matches?.('dialog,textarea,[contenteditable=true]')||(touchDevice.matches&&node.matches?.('.selection-inquiry'))||(node.matches?.('.inquiry-desk')&&node.scrollHeight>node.clientHeight+2)});
   instance.current=lenis;
   const page=document.documentElement;
-  let viewportHeight=innerHeight,viewportWidth=innerWidth,viewportPending=false,viewportTimer=0,landing=null,nativeTransition=null,nativeFinishTimer=0;
+  const heroVisual=root.current.querySelector('.hero');
+  let lastHeroExit='';
+  let viewportHeight=innerHeight,viewportWidth=innerWidth,viewportPending=false,viewportTimer=0,landing=null,nativeTransition=null,nativeFinishTimer=0,transitionWatchdog=0;
   page.style.setProperty('--page-height',`${viewportHeight}px`);
   page.classList.toggle('is-short-viewport',viewportHeight<=740);
   let sections=[],points=[],heroEnd=0,measureFrame=0,gestureTimer=0,touchFrame=0,heroHandoffFrame=0;
-  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,nativeWheelUntil=0,heroHandoff=false,heroArmed=true,heroWheelQuietUntil=0,lastScrollY=scrollY;
-  const top=el=>el.getBoundingClientRect().top+window.scrollY;
+  let direction=0,gestureTotal=0,consumed=false,moving=false,touchGesture=null,heroHandoff=false,heroArmed=true,touchDown=false,handoffPending=false,heroWheelQuietUntil=0,lastScrollY=scrollY;
+  // Layout coordinates remain stable while the two chapter cards scale.
+  const top=el=>{let y=0;for(let node=el;node;node=node.offsetParent)y+=node.offsetTop;return y};
   function measure(){
    measureFrame=0;lenis.resize();
    const inset=header.offsetHeight,viewport=viewportHeight-inset,hero=root.current.querySelector('.hero');
@@ -30,9 +32,11 @@ export default function usePageScroll(root,blocked){
    sections=[...root.current.querySelectorAll(sectionSelector)].map(el=>{
     const start=top(el)-inset,end=Math.max(start,top(el)+el.offsetHeight-viewportHeight);
     const tall=el.offsetHeight>viewport+3;
-    el.toggleAttribute('data-page-snap',!reduced.matches&&(!tall||directionalPan)&&!el.matches('.selection-inquiry'));
+    el.toggleAttribute('data-page-snap',!touchDevice.matches&&!reduced.matches&&(!tall||directionalPan)&&!el.matches('.selection-inquiry'));
     el.toggleAttribute('data-page-tall',tall);
-    return {el,start,end,tall};
+    const card=el.matches('.statement')||el===root.current.querySelector('.catalog-category');
+    el.toggleAttribute('data-card-exit',card);
+    return {el,start,end,tall,card};
    });
    points=[...new Set([heroEnd,...sections.flatMap(s=>s.tall?[s.start,s.end]:[s.start]),lenis.limit].map(y=>Math.round(Math.max(0,Math.min(y,lenis.limit)))))].sort((a,b)=>a-b);
    syncGestureMode();
@@ -74,8 +78,23 @@ export default function usePageScroll(root,blocked){
    page.classList.toggle('is-reading-inquiry',mobileFormPosition());
    page.classList.toggle('is-scrubbing-hero',!reduced.matches&&heroEnd>0&&scrollY<=heroEnd+3);
    for(const s of sections){if(!s.tall)continue;const edge=scrollY<=s.start+3?'start':scrollY>=s.end-3?'end':'middle';if(s.el.dataset.tallEdge!==edge)s.el.dataset.tallEdge=edge}
+   const distance=Math.max(1,(sections[0]?.start??heroEnd+viewportHeight)-heroEnd);
+   const exit=reduced.matches?0:Math.max(0,Math.min(1,(scrollY-heroEnd)/distance));
+   const value=(exit*exit*(3-2*exit)).toFixed(4);
+   if(value!==lastHeroExit){
+    lastHeroExit=value;heroVisual.style.setProperty('--hero-exit',value);
+   }
+   heroVisual.classList.toggle('has-exit-motion',exit>0&&exit<1);
+   for(let i=0;i<sections.length;i++){
+    const s=sections[i];if(!s.card)continue;
+    const span=Math.max(1,(sections[i+1]?.start??s.end+viewportHeight)-s.end);
+    const p=reduced.matches?0:Math.max(0,Math.min(1,(scrollY-s.end)/span));
+    const value=(p*p*(3-2*p)).toFixed(4);
+    if(s.el.style.getPropertyValue('--chapter-exit')!==value)s.el.style.setProperty('--chapter-exit',value);
+    s.el.classList.toggle('has-card-exit',p>0&&p<1);
+   }
   }
-  function releaseFormScroll(){
+  function releaseNativeScroll(){
    cancelAnimationFrame(touchFrame);
    if(moving||nativeTransition||lenis.isScrolling==='smooth'){
     window.scrollTo({top:scrollY,behavior:'instant'});
@@ -90,7 +109,7 @@ export default function usePageScroll(root,blocked){
   };
   const unavailable=()=>lenis.isStopped||document.querySelector('dialog[open],#startup-loader');
   function completeTransition(){
-   moving=false;nativeTransition=null;clearTimeout(nativeFinishTimer);
+   moving=false;nativeTransition=null;clearTimeout(nativeFinishTimer);clearTimeout(transitionWatchdog);
    if(heroHandoff){heroHandoff=false;heroWheelQuietUntil=performance.now()+240;page.classList.remove('is-hero-handoff');root.current.querySelector('.hero').dataset.exitState='complete'}
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,0)}else landing=null;
   }
@@ -100,6 +119,10 @@ export default function usePageScroll(root,blocked){
    y=Math.max(0,Math.min(y,lenis.limit));
    landing=sections.flatMap(s=>[{el:s.el,edge:'start',value:s.start},{el:s.el,edge:'end',value:s.end}]).find(p=>Math.abs(p.value-y)<2)||null;
    moving=true;
+   clearTimeout(transitionWatchdog);
+   // A touch can cancel browser smooth scrolling without reaching its target.
+   // Always release gesture ownership, even when scrollend never reaches it.
+   transitionWatchdog=setTimeout(completeTransition,1600);
    if(touchDevice.matches&&!reduced.matches){
     // Browser smooth scroll can run on the compositor instead of a JS rAF per
     // pixel. Lenis still tracks native position, dimensions, and dialog locking.
@@ -110,6 +133,11 @@ export default function usePageScroll(root,blocked){
   }
   function scrubHero(y,immediate){
    const target=Math.max(0,Math.min(heroEnd,y));
+   // A fresh downward gesture at a previously visited final frame must exit,
+   // even though the renderer has no new frame to announce.
+   if(y>heroEnd+3&&scrollY>=heroEnd-3&&heroVisual.dataset.sequenceComplete==='true'){
+    heroArmed=true;finishHero();return;
+   }
    if(immediate){window.scrollTo({top:target,behavior:'instant'});lenis.reset()}
    else lenis.scrollTo(target,{programmatic:false,lerp:.14});
   }
@@ -119,7 +147,13 @@ export default function usePageScroll(root,blocked){
    page.classList.add('is-hero-handoff');
    window.scrollTo({top:heroEnd,behavior:'instant'});lenis.reset();
    const hero=root.current.querySelector('.hero');hero.dataset.exitState='holding';
-   // Present the actual final canvas frame before starting a single transfer.
+   // Wait for finger release: starting native smooth scroll during a touch
+   // lets the browser cancel it before reaching the next section.
+   handoffPending=true;if(!touchDown)startHandoff();
+  }
+  function startHandoff(){
+   if(!handoffPending)return;handoffPending=false;
+   const hero=heroVisual;
    heroHandoffFrame=requestAnimationFrame(()=>{heroHandoffFrame=requestAnimationFrame(()=>{
     hero.dataset.exitState='moving';go(sections[0]?.start);
    })});
@@ -138,9 +172,7 @@ export default function usePageScroll(root,blocked){
    if(!reduced.matches&&(heroHandoff||performance.now()<heroWheelQuietUntil)){
     event.preventDefault();heroWheelQuietUntil=performance.now()+240;return;
    }
-   if(touchDevice.matches&&(mobileFormTarget(event.target)||mobileFormPosition()||performance.now()<nativeWheelUntil)){
-    nativeWheelUntil=performance.now()+240;nativeWheelEvents.add(event);releaseFormScroll();return;
-   }
+   if(touchDevice.matches&&scrollY>heroEnd+3){releaseNativeScroll();return}
    if(reduced.matches||unavailable()||event.ctrlKey||event.metaKey||protectedTarget(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
    const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1),dir=Math.sign(delta);
    if(!dir)return;
@@ -157,7 +189,7 @@ export default function usePageScroll(root,blocked){
   }
   function key(event){
    if(heroHandoff&&['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key)){event.preventDefault();return}
-   if(mobileFormPosition())return;
+   if(touchDevice.matches&&scrollY>heroEnd+3)return;
    if(reduced.matches||unavailable()||protectedTarget(event.target)||event.target.closest?.('button,a,summary')||event.ctrlKey||event.metaKey||event.altKey)return;
    if(event.key==='Home'||event.key==='End'){event.preventDefault();go(event.key==='Home'?0:lenis.limit);return}
    const dir=['PageDown','ArrowDown',' '].includes(event.key)?(event.shiftKey?-1:1):['PageUp','ArrowUp'].includes(event.key)?-1:0;
@@ -167,8 +199,10 @@ export default function usePageScroll(root,blocked){
    event.preventDefault();if(!event.repeat)go(destination(dir));
   }
   function touchStart(event){
+   touchDown=true;
+   if(touchDevice.matches&&scrollY>heroEnd+3&&!heroHandoff){releaseNativeScroll();touchGesture=null;return}
    const freeForm=mobileFormTarget(event.target)||mobileFormPosition();
-   if(freeForm)releaseFormScroll();
+   if(freeForm)releaseNativeScroll();
    cancelAnimationFrame(touchFrame);
    if(heroHandoff){touchGesture=null;return}
    const finger=event.touches[0];
@@ -190,6 +224,7 @@ export default function usePageScroll(root,blocked){
    // scrolling. The film, tall content, form, and zoom remain browser controlled.
   }
   function touchEnd(event){
+   touchDown=false;if(handoffPending)startHandoff();
    const gesture=touchGesture;touchGesture=null;
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,180)}
    if(!gesture||heroHandoff||gesture.axis==='horizontal'||gesture.free||gesture.kind==='hero')return;
@@ -215,7 +250,7 @@ export default function usePageScroll(root,blocked){
    if(moving||lenis.isScrolling==='smooth'){window.scrollTo({top:scrollY,behavior:'instant'});lenis.reset();moving=false;landing=null;nativeTransition=null;clearTimeout(nativeFinishTimer)}
    if(viewportPending){clearTimeout(viewportTimer);viewportTimer=setTimeout(updateViewport,180)}
   };
-  const touchCancel=()=>{touchGesture=null;cancelAnimationFrame(touchFrame);if(viewportPending)resizeViewport()};
+  const touchCancel=()=>{touchDown=false;if(handoffPending)startHandoff();touchGesture=null;cancelAnimationFrame(touchFrame);if(viewportPending)resizeViewport()};
   addEventListener('wheel',wheel,{passive:false,capture:true});
   addEventListener('keydown',key);addEventListener('touchstart',touchStart,{passive:true});
   addEventListener('touchmove',touchMove,{passive:true});
@@ -228,14 +263,15 @@ export default function usePageScroll(root,blocked){
   const sizing=new ResizeObserver(queueMeasure);sizing.observe(root.current);sizing.observe(header);
   measure();
   return()=>{
-   clearTimeout(gestureTimer);cancelAnimationFrame(heroHandoffFrame);clearTimeout(nativeFinishTimer);clearTimeout(viewportTimer);cancelAnimationFrame(touchFrame);cancelAnimationFrame(measureFrame);sizing.disconnect();
+   clearTimeout(transitionWatchdog);clearTimeout(gestureTimer);cancelAnimationFrame(heroHandoffFrame);clearTimeout(nativeFinishTimer);clearTimeout(viewportTimer);cancelAnimationFrame(touchFrame);cancelAnimationFrame(measureFrame);sizing.disconnect();
    removeEventListener('wheel',wheel,true);removeEventListener('keydown',key);removeEventListener('touchstart',touchStart);
    removeEventListener('touchmove',touchMove);removeEventListener('touchend',touchEnd);removeEventListener('touchcancel',touchCancel);removeEventListener('scroll',onScroll);
    removeEventListener('pointerdown',onPointer);removeEventListener('resize',resizeViewport);lenis.destroy();instance.current=null;refreshViewport.current=null;
    removeEventListener('scrollend',finishNative);removeEventListener('click',anchorClick);
    removeEventListener('hero-finished',finishHero);
    page.style.removeProperty('--page-height');page.classList.remove('is-short-viewport','is-reading-inquiry','is-scrubbing-hero','is-hero-handoff');
-   reduced.removeEventListener('change',queueMeasure);sections.forEach(s=>{s.el.removeAttribute('data-page-snap');s.el.removeAttribute('data-page-tall');s.el.removeAttribute('data-tall-edge')});
+   reduced.removeEventListener('change',queueMeasure);sections.forEach(s=>{s.el.removeAttribute('data-card-exit');s.el.style.removeProperty('--chapter-exit');s.el.classList.remove('has-card-exit');s.el.removeAttribute('data-page-snap');s.el.removeAttribute('data-page-tall');s.el.removeAttribute('data-tall-edge')});
+   heroVisual.style.removeProperty('--hero-exit');heroVisual.classList.remove('has-exit-motion');
   };
  },[root]);
  useEffect(()=>{const lenis=instance.current;if(!lenis)return;if(blocked)lenis.stop();else{lenis.start();refreshViewport.current?.();lenis.resize()}},[blocked]);

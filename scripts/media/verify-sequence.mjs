@@ -6,7 +6,7 @@ import {promisify} from 'node:util';
 
 const ffmpeg=process.argv[2];
 if(!ffmpeg)throw new Error('Pass the FFmpeg executable path.');
-const run=promisify(execFile),base=path.resolve('public/media/hero-prob4');
+const run=promisify(execFile),base=path.resolve(process.argv[3]||'public/media/hero-last');
 const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8').replace(/^\uFEFF/,''));
 const options={maxBuffer:4*1024*1024,windowsHide:true};
 const common=['-hide_banner','-loglevel','error'];
